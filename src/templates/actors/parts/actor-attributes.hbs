@@ -59,6 +59,8 @@
 							{{/if}}
 							{{#if (eq option.label "[Text]")}}
 								<input type="text" class="input input-title" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" value="{{option.userLabel}}">
+							{{else if (eq option.label "[TextLong]")}}
+								{{editor attr.enriched target=attr.attrName button=true owner=@root.owner editable=@root.editable engine="prosemirror" collaborate=false}}
 							{{else}}
 								{{option.label}}
 							{{/if}}

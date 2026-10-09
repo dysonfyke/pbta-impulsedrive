@@ -64,7 +64,7 @@
 		{{#each moves as |moveGroup moveKey|}}
 			<div class="cell cell--moves cell--group cell--{{moveKey}}" data-key="{{moveKey}}">
 				<h2 class="cell__title">
-					<label class="item-group-label">
+					<label class="item-group-label {{#if (lookup ../collapsedGroups.moves moveKey)}}open{{/if}}">
 						{{#if (eq moveKey "PBTA_OTHER")}}
 						{{localize moveKey}}
 						{{else}}
@@ -86,7 +86,7 @@
 						</button>
 					</div>
 				</h2>
-				<ol class="items-list">
+				<ol class="items-list" {{#if (lookup ../collapsedGroups.moves moveKey)}}style="display: none;"{{/if}}>
 				{{#each moveGroup as |item id|}}
 					<li class="item flexrow" data-item-id="{{item._id}}" draggable="true">
 					{{> "pbta.actor-moves" item=item statSettings=../../statSettings sheetSettings=../../sheetSettings}}

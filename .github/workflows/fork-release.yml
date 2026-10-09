@@ -1,0 +1,54 @@
+name: Fork Build + GitHub Release
+on:
+  push:
+    tags:
+      - '*'
+
+concurrency:
+  group: "fork-release-${{ github.ref }}"
+  cancel-in-progress: true
+permissions:
+  contents: write
+jobs:
+
+  #####################################################################
+  ### Release Job #####################################################
+  #####################################################################
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    container:
+      image: node:20
+    # The upstream project publishes through release.yml instead.
+    if: github.repository_owner != 'asacolips-projects'
+    timeout-minutes: 60
+    steps:
+
+    - name: Retrieving git refs
+      uses: actions/checkout@v4.1.0
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build dist directory
+      run: npm run build
+
+    - name: Build manifest
+      run: node ./.github/workflows/update-fork-manifest.js --tag=${{ github.ref_name }} --project=${{ github.repository }}
+
+    - name: Create package directory
+      run: cp ./dist/system.json ./system.json && mv dist pbta
+
+    - name: Generate pbta.zip
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -q pbta.zip -r pbta
+
+    - name: Create Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "system.json,pbta.zip"
+        generateReleaseNotes: true
+        prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+        allowUpdates: true
+        token: ${{ secrets.GITHUB_TOKEN }} # Provided by actions.

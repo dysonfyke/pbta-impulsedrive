@@ -8,14 +8,14 @@
 	{{#each equipment as |equipmentGroup equipmentKey|}}
 		<div class="cell cell--equipment cell--group cell--{{equipmentKey}}" data-key="{{equipmentKey}}">
 			<h2 class="cell__title">
-				<label class="item-group-label">{{#if (eq equipmentKey "PBTA_OTHER")}}{{localize equipmentKey}}{{else}}{{getLabel ../equipmentTypes equipmentKey}}{{/if}}<span class="item-details-toggle"><i class="fas fa-chevron-up"></i></span></label>
+				<label class="item-group-label {{#if (lookup ../collapsedGroups.equipment equipmentKey)}}open{{/if}}">{{#if (eq equipmentKey "PBTA_OTHER")}}{{localize equipmentKey}}{{else}}{{getLabel ../equipmentTypes equipmentKey}}{{/if}}<span class="item-details-toggle"><i class="fas fa-chevron-up"></i></span></label>
 				<div>
 					<button type="button" class="item-control item-create" data-type="equipment" data-equipment-type="{{equipmentKey}}">
 						<i class="fas fa-plus"></i>
 					</button>
 				</div>
 			</h2>
-			<ol class="items-list">
+			<ol class="items-list" {{#if (lookup ../collapsedGroups.equipment equipmentKey)}}style="display: none;"{{/if}}>
 				{{#each equipmentGroup as |item id|}}
 				<li class="item flexrow" data-item-id="{{item._id}}" draggable="true">
 					<h4 class="item-name">

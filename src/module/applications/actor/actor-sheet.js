@@ -26,6 +26,13 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	_expanded = new Set();
 
 	/**
+	 * Keys for move and equipment groups on the sheet that have been collapsed.
+	 * @type {{moves: Set<string>, equipment: Set<string>}}
+	 * @protected
+	 */
+	_collapsed = { moves: new Set(), equipment: new Set() };
+
+	/**
 	 * Stats targetted by the Stat Shifting feature.
 	 * @type {object}
 	 * @protected
@@ -322,6 +329,11 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			context.moves.PBTA_OTHER = [];
 		}
 
+		context.collapsedGroups = {};
+		for (const [type, keys] of Object.entries(this._collapsed)) {
+			context.collapsedGroups[type] = Object.fromEntries(Array.from(keys, (key) => [key, true]));
+		}
+
 		// Iterate through items, allocating to containers
 		// let totalWeight = 0;
 		for (let item of items) {
@@ -554,15 +566,22 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		this.actor.update(update);
 	}
 
-	// @todo add a _shrinked set to persist shrinking, similar to the _expanded set.
 	_hideMoveGroup(event) {
 		event.preventDefault();
 		const toggler = $(event.currentTarget);
 		const group = toggler.parents(".cell--group");
 		const description = group.find(".items-list");
+		const collapsed = this._collapsed[group.hasClass("cell--equipment") ? "equipment" : "moves"];
+		const key = String(group.data("key"));
 
 		toggler.toggleClass("open");
-		description.slideToggle(200);
+		if (collapsed.has(key)) {
+			collapsed.delete(key);
+			description.slideDown(200);
+		} else {
+			collapsed.add(key);
+			description.slideUp(200);
+		}
 	}
 
 	_showItemDetails(event) {

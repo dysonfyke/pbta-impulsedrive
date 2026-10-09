@@ -43,10 +43,10 @@ grid:
   distance: 5
   units: ft
 socket: true
-url: https://github.com/asacolips-projects/pbta
-manifest: https://asacolips-artifacts.s3.amazonaws.com/pbta/latest/system.json
-download: https://asacolips-artifacts.s3.amazonaws.com/pbta/1.0.0/pbta.zip
-changelog: https://github.com/asacolips-projects/pbta/blob/main/CHANGELOG.md
-bugs: https://github.com/asacolips-projects/pbta/issues
+url: https://github.com/dysonfyke/pbta-impulsedrive
+manifest: https://github.com/dysonfyke/pbta-impulsedrive/releases/latest/download/system.json
+download: https://github.com/dysonfyke/pbta-impulsedrive/releases/latest/download/pbta.zip
+changelog: https://github.com/dysonfyke/pbta-impulsedrive/blob/main/CHANGELOG.md
+bugs: https://github.com/dysonfyke/pbta-impulsedrive/issues
 flags:
   needsMigrationVersion: "1.0.23"

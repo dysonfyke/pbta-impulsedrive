@@ -1,0 +1,13 @@
+<form class="pbta-choice-group-dialog">
+	<ol class="items-list">
+		{{#each sets}}
+		<li class="item">
+			<label class="flexrow">
+				<input type="radio" name="set" value="{{@index}}">
+				<strong>{{this.title}}</strong>
+			</label>
+			{{#if this.desc}}<div class="group-description">{{this.desc}}</div>{{/if}}
+		</li>
+		{{/each}}
+	</ol>
+</form>

@@ -1,24 +1,25 @@
 <form class="pbta-choice-dialog">
     <div>{{desc}}</div>
+    {{#if max}}
+    <p class="choice-limit">{{localize "PBTA.ChoiceLimit" max=max}}</p>
+    {{/if}}
     <ol class="items-list">
         {{#each choices}}
-        {{#if (lte this.advancement ../parent.advancements)}}
-        <li class="item flexrow" data-uuid="{{this.uuid}}">
+        <li class="item flexrow">
             <div class="item-name flexrow">
                 <img src="{{this.img}}" height="32" width="32">
                 <label>{{this.name}}</label>
             </div>
-            {{#if this.granted}}
-			<input type="checkbox" {{checked this.granted}} disabled>
+            {{#if this.disabled}}
+			<input type="checkbox" data-locked="true" disabled>
             {{else}}
-			<input type="checkbox" name="{{this.uuid}}" {{checked this.granted}}>
+			<input type="checkbox" name="choice-{{this.index}}">
             {{/if}}
             <div class="item-description">
                 {{{pbtaTags this.tags}}}
                 <div class="description">{{editor this.desc editable=false engine="prosemirror"}}</div>
             </div>
         </li>
-        {{/if}}
         {{/each}}
     </ol>
 </form>

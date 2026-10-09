@@ -1,0 +1,24 @@
+<div class="modifiers" data-modifiers="{{prefix}}">
+	<ol class="modifiers-list">
+		{{#each modifiers}}
+		<li class="modifier flexrow" data-id="{{@index}}">
+			<select name="{{../prefix}}.{{@index}}.key">
+				{{selectOptions ../targets selected=this.key blank=""}}
+				{{#if (and this.key (not (lookup ../targets this.key)))}}
+				<option value="{{this.key}}" selected>{{this.key}}</option>
+				{{/if}}
+			</select>
+			<select name="{{../prefix}}.{{@index}}.mode">
+				{{selectOptions ../modes selected=this.mode localize=true}}
+			</select>
+			<input type="number" name="{{../prefix}}.{{@index}}.value" value="{{this.value}}" data-dtype="Number">
+			<a data-action="delete-modifier" data-tooltip="PBTA.Modifiers.Delete">
+				<i class="fa fa-trash"></i>
+			</a>
+		</li>
+		{{/each}}
+	</ol>
+	<a data-action="add-modifier">
+		<i class="fa fa-plus"></i> {{localize "PBTA.Modifiers.AddModifier"}}
+	</a>
+</div>

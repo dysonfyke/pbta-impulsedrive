@@ -176,12 +176,6 @@ export default class ItemPbta extends Item {
 					const attributesUpdate = await this.handleAttributes(data);
 					foundry.utils.mergeObject(changes, attributesUpdate);
 				}
-				const choiceUpdate = await this.handleChoices(data);
-				if (Object.keys(choiceUpdate).length > 0) {
-					this.updateSource(choiceUpdate);
-					const grantedItems = await this.grantChoices(choiceUpdate);
-					this.updateSource({ [`flags.${SYSTEM_ID}`]: { grantedItems } });
-				}
 				if (this.system.actorType) {
 					const stats = foundry.utils.duplicate(this.parent.system.stats);
 					Object.entries(this.system.stats)
@@ -189,7 +183,14 @@ export default class ItemPbta extends Item {
 						.forEach(([key, data]) => stats[key].value = data.value);
 					changes["system.stats"] = stats;
 				}
+				// Granted modifiers build on the playbook's stats, so those have to be in place first.
 				await this.parent.update(changes);
+				const choiceUpdate = await this.handleChoices(data);
+				if (Object.keys(choiceUpdate).length > 0) {
+					this.updateSource(choiceUpdate);
+					const grantedItems = await this.grantChoices(choiceUpdate);
+					this.updateSource({ [`flags.${SYSTEM_ID}`]: { grantedItems } });
+				}
 			} else if (actorType && !this.system.actorType) {
 				const attributes = this._getValidAttributes(actorType, actorTypes);
 				const stats = actorTypes[actorType]?.stats;
@@ -219,10 +220,16 @@ export default class ItemPbta extends Item {
 			?? choices?.["system.choiceSets"]
 			?? [];
 		for (const set of choiceSets) {
-			const newChoices = set.choices
-				.filter((choice) => choice.granted && !grantedItems.some((id) => choice.uuid.includes(id)));
+			const newChoices = set.choices.filter((choice) => choice.pending
+				|| (choice.uuid && choice.granted && !grantedItems.some((id) => choice.uuid.includes(id))));
 
 			for (const choice of newChoices) {
+				delete choice.pending;
+				// Choices without an item only apply their modifiers.
+				if (!choice.uuid) {
+					await this.parent.applyModifiers(choice.id, choice.modifiers);
+					continue;
+				}
 				const item = await fromUuid(choice.uuid);
 				if (item) {
 					items.push(item.toObject());
@@ -327,88 +334,176 @@ export default class ItemPbta extends Item {
 	}
 
 	async handleChoices(data) {
-		if (data.system?.choiceSets?.length > 0) {
-			for (const choiceSet of data.system.choiceSets) {
-				const { advancement, choices, desc, granted, repeatable, title } = choiceSet;
-				if (advancement > this.parent.advancements || (granted && !repeatable)) continue;
-				const validChoices = (await Promise.all(
-					choices.map(async (c) => {
-						const item = await fromUuid(c.uuid);
-						c.name = item.name;
-						c.tags = item.system.tags;
-						c.desc = await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description, {
-							secrets: this.actor.isOwner,
-							rollData: this.actor.getRollData(),
-							relativeTo: this.actor
-						});
-						const isValid = !c.granted
-							&& c.advancement <= this.parent.advancements
-							&& !this.actor.items.has(item.id);
-						return isValid ? c : null;
-					}))
-				).filter((c) => c);
-				if (!validChoices.length) continue;
-				choiceSet.granted = true;
-				if (choiceSet.grantOn === 0) {
-					validChoices.forEach((i) => {
-						const index = choices.findIndex((c) => c.uuid === i.uuid);
-						choiceSet.choices[index].granted = true;
-					});
-					continue;
-				}
+		const choiceSets = data.system?.choiceSets ?? [];
+		const eligible = [];
+		for (const choiceSet of choiceSets) {
+			const { advancement, granted, repeatable } = choiceSet;
+			if (advancement > this.parent.advancements || (granted && !repeatable)) continue;
+			const validChoices = await this._getValidChoices(choiceSet);
+			if (validChoices.some((c) => !c.disabled)) eligible.push({ choiceSet, validChoices });
+		}
 
-				await Dialog.wait({
-					title: `${game.i18n.localize("PBTA.Choice")}: ${title}`,
-					content: await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/dialog/choice-dialog.hbs`, { choices: validChoices, desc, parent: this.parent }),
-					default: "ok",
-					// @todo add some warning about pending grants
-					close: () => {
-						return false;
-					},
-					buttons: {
-						skip: {
-							label: game.i18n.localize("Cancel"),
-							icon: '<i class="fas fa-undo"></i>',
-							callback: () => {
-								// @todo add some warning about pending grants
-							}
-						},
-						ok: {
-							label: game.i18n.localize("Confirm"),
-							icon: '<i class="fas fa-check"></i>',
-							callback: async (html) => {
-								const fd = new FormDataExtended(html.querySelector(".pbta-choice-dialog"));
-								validChoices.forEach((i) => {
-									if (fd.object[i.uuid]) {
-										const index = choices.findIndex((c) => c.uuid === i.uuid);
-										choiceSet.choices[index].granted = true;
-									}
-								});
-							}
-						}
-					},
-					render: (html) => {
-						for (const el of html.querySelectorAll(".item-name")) {
-							el.addEventListener("click", (event) => {
-								event.preventDefault();
-								const toggler = $(event.currentTarget);
-								const item = toggler.parents(".item");
-								const description = item.find(".item-description");
-
-								toggler.toggleClass("open");
-								if (description.hasClass("expanded")) description.slideUp(200);
-								else description.slideDown(200);
-								description.toggleClass("expanded");
-							});
-						}
-					}
-				}, { height: 400, jQuery: false });
+		// Choice sets that share a group are alternatives, so only the one the player picks is offered.
+		const groups = {};
+		for (const entry of eligible) {
+			const group = entry.choiceSet.group;
+			if (!group) continue;
+			groups[group] ??= [];
+			groups[group].push(entry);
+		}
+		for (const [group, entries] of Object.entries(groups)) {
+			if (entries.length < 2) continue;
+			const picked = await this._promptChoiceGroup(group, entries);
+			for (const entry of entries) {
+				if (entry === picked) entry.picked = true;
+				else entry.skipped = true;
 			}
 		}
-		return { "system.choiceSets": data.system.choiceSets };
+
+		for (const { choiceSet, validChoices, picked, skipped } of eligible) {
+			if (skipped) continue;
+			const available = validChoices.filter((c) => !c.disabled);
+			let grants;
+			// Grant without asking when there is nothing left to decide.
+			if (choiceSet.grantOn === 0 || (picked && validChoices.length === 1)) grants = available;
+			else grants = await this._promptChoices(choiceSet, validChoices);
+			if (!grants?.length) continue;
+			choiceSet.granted = true;
+			for (const choice of grants) {
+				choice.pending = true;
+				if (!choice.repeatable) choice.granted = true;
+			}
+		}
+		return { "system.choiceSets": choiceSets };
+	}
+
+	/**
+	 * Lists the choices of a choice set that the actor can currently take,
+	 * with the details needed to display them.
+	 * @param {object} choiceSet
+	 * @returns {Promise<object[]>}
+	 */
+	async _getValidChoices(choiceSet) {
+		const choices = await Promise.all(choiceSet.choices.map(async (c, index) => {
+			c.index = index;
+			if (c.uuid) {
+				const item = await fromUuid(c.uuid);
+				if (!item || this.actor.items.has(item.id)) return null;
+				c.name = item.name;
+				c.tags = item.system.tags;
+				c.desc = await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description, {
+					secrets: this.actor.isOwner,
+					rollData: this.actor.getRollData(),
+					relativeTo: this.actor
+				});
+			} else {
+				const summary = game.pbta.utils.describeModifiers(c.modifiers, this.actor.sheetType);
+				c.name = c.label || summary;
+				c.img ||= "icons/svg/upgrade.svg";
+				c.desc = c.label ? summary : "";
+				// A modifier that would change nothing, such as a stat already at its limit, can't be picked.
+				c.disabled = !this.actor._prepareModifiers(c.modifiers).applied.length;
+			}
+			const isValid = (!c.granted || c.repeatable) && c.advancement <= this.parent.advancements;
+			return isValid ? c : null;
+		}));
+		return choices.filter((c) => c);
+	}
+
+	/**
+	 * Asks the player which of a group of choice sets to take.
+	 * @param {string} group      The group's name.
+	 * @param {object[]} entries  The choice sets on offer.
+	 * @returns {Promise<object|null>}  The picked entry, if any.
+	 */
+	async _promptChoiceGroup(group, entries) {
+		return Dialog.wait({
+			title: `${game.i18n.localize("PBTA.Choice")}: ${group}`,
+			content: await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/dialog/choice-group-dialog.hbs`, {
+				sets: entries.map((entry) => entry.choiceSet)
+			}),
+			default: "ok",
+			close: () => null,
+			buttons: {
+				skip: {
+					label: game.i18n.localize("Cancel"),
+					icon: '<i class="fas fa-undo"></i>',
+					callback: () => null
+				},
+				ok: {
+					label: game.i18n.localize("Confirm"),
+					icon: '<i class="fas fa-check"></i>',
+					callback: (html) => {
+						const fd = new FormDataExtended(html.querySelector(".pbta-choice-group-dialog"));
+						return entries[fd.object.set] ?? null;
+					}
+				}
+			}
+		}, { jQuery: false });
+	}
+
+	/**
+	 * Asks the player which choices of a choice set to take.
+	 * @param {object} choiceSet
+	 * @param {object[]} validChoices  The choices on offer.
+	 * @returns {Promise<object[]|null>}  The picked choices, if any.
+	 */
+	async _promptChoices(choiceSet, validChoices) {
+		const { desc, title } = choiceSet;
+		const max = choiceSet.max > 0 ? choiceSet.max : 0;
+		return Dialog.wait({
+			title: `${game.i18n.localize("PBTA.Choice")}: ${title}`,
+			content: await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/dialog/choice-dialog.hbs`, { choices: validChoices, desc, max }),
+			default: "ok",
+			// @todo add some warning about pending grants
+			close: () => null,
+			buttons: {
+				skip: {
+					label: game.i18n.localize("Cancel"),
+					icon: '<i class="fas fa-undo"></i>',
+					callback: () => null
+				},
+				ok: {
+					label: game.i18n.localize("Confirm"),
+					icon: '<i class="fas fa-check"></i>',
+					callback: (html) => {
+						const fd = new FormDataExtended(html.querySelector(".pbta-choice-dialog"));
+						const picked = validChoices.filter((c) => fd.object[`choice-${c.index}`]);
+						return max ? picked.slice(0, max) : picked;
+					}
+				}
+			},
+			render: (html) => {
+				for (const el of html.querySelectorAll(".item-name")) {
+					el.addEventListener("click", (event) => {
+						event.preventDefault();
+						const toggler = $(event.currentTarget);
+						const item = toggler.parents(".item");
+						const description = item.find(".item-description");
+
+						toggler.toggleClass("open");
+						if (description.hasClass("expanded")) description.slideUp(200);
+						else description.slideDown(200);
+						description.toggleClass("expanded");
+					});
+				}
+
+				// Once the limit is reached, the remaining choices can't be ticked.
+				const boxes = Array.from(html.querySelectorAll("input[type='checkbox']:not([data-locked])"));
+				for (const box of boxes) {
+					box.addEventListener("change", () => {
+						const full = max > 0 && boxes.filter((b) => b.checked).length >= max;
+						boxes.forEach((b) => b.disabled = full && !b.checked);
+					});
+				}
+			}
+		}, { height: 400, jQuery: false });
 	}
 
 	async _preUpdate(changed, options, user) {
+		if (changed?.system?.modifiers && !Array.isArray(changed.system.modifiers)) {
+			changed.system.modifiers = Object.values(changed.system.modifiers);
+		}
 		if (this.type === "playbook") {
 			if (Object.keys(changed?.system?.choiceSets ?? {}).length) {
 				if (!Array.isArray(changed.system.choiceSets)) {
@@ -417,10 +512,13 @@ export default class ItemPbta extends Item {
 				changed.system.choiceSets.forEach((cs) => {
 					if (cs.choices && Object.keys(cs.choices).length) {
 						if (!Array.isArray(cs.choices)) cs.choices = Object.values(cs.choices);
+						cs.choices.forEach((c) => {
+							if (c.modifiers && !Array.isArray(c.modifiers)) c.modifiers = Object.values(c.modifiers);
+						});
 						// choiceSets can be updated on a playbook, when they are fully populated and we want to sort them,
 						// or choiceSets 'granted' properties can be modified when a choice dialog has been shown,
 						// where they might not be fully populated, but we don't need to sort them again.
-						if (cs.choices[0].name) cs.choices.sort(this._sortItemAdvancement);
+						if (cs.choices.some((c) => c.name)) cs.choices.sort(this._sortItemAdvancement);
 					}
 				});
 			}
@@ -430,7 +528,9 @@ export default class ItemPbta extends Item {
 
 	_sortItemAdvancement(a, b) {
 		if (a.advancement - b.advancement) return a.advancement - b.advancement;
-		return a.name.localeCompare(b.name);
+		// Items are listed by name, followed by modifier choices in the order they were added.
+		if (!a.uuid || !b.uuid) return Number(!a.uuid) - Number(!b.uuid);
+		return (a.name ?? "").localeCompare(b.name ?? "");
 	}
 
 	async _preDelete(options, user) {
@@ -449,6 +549,11 @@ export default class ItemPbta extends Item {
 							);
 							await this.parent.deleteEmbeddedDocuments("Item", Array.from(granted));
 						}
+						const modifierChoices = this.system.choiceSets
+							.flatMap((cs) => cs.choices)
+							.filter((choice) => !choice.uuid && choice.id)
+							.map((choice) => choice.id);
+						if (modifierChoices.length) await this.parent.revertModifiers(modifierChoices);
 						await this.parent.update({ "system.playbook": { name: "", slug: "", uuid: "" } });
 						return true;
 					}
@@ -504,6 +609,9 @@ export default class ItemPbta extends Item {
 			}
 		}
 		super._onCreate(data, options, userId);
+		if (this.actor && (game.user.id === userId) && this.system.modifiers?.length) {
+			this.actor.applyModifiers(this.id, this.system.modifiers);
+		}
 	}
 
 	_onUpdate(changed, options, userId) {
@@ -524,6 +632,7 @@ export default class ItemPbta extends Item {
 			CONFIG.PBTA.playbooks = CONFIG.PBTA.playbooks.filter((p) => p.uuid !== this.uuid);
 		}
 		super._onDelete(options, userId);
+		if (this.actor && (game.user.id === userId)) this.actor.revertModifiers([this.id]);
 	}
 
 	static async createDialog(data={}, createOptions={}, { folders, types, template, context, ...dialogOptions }={}) {

@@ -45,6 +45,14 @@
 					{{/if}}
 				</div>
 			</div>
+			<div class="form-group grant-limits-form">
+				<label>{{localize "PBTA.ChoiceGroup"}}</label>
+				<div class="form-fields">
+					<input type="text" name="system.choiceSets.{{@../key}}.group" value="{{this.group}}" data-tooltip="PBTA.ChoiceGroupHint">
+					<label {{hidden (not this.grantOn)}}>{{localize "PBTA.ChoiceMax"}}</label>
+					<input type="number" name="system.choiceSets.{{@../key}}.max" value="{{this.max}}" min="0" data-tooltip="PBTA.ChoiceMaxHint" {{hidden (not this.grantOn)}}>
+				</div>
+			</div>
 			<hr>
 			{{#if this.choices.length}}
 			<li class="form-group items-field">
@@ -52,6 +60,30 @@
 			</li>
 			{{/if}}
 			{{#each this.choices}}
+			{{#if this.isModifier}}
+			<li class="form-group choiceset-item choiceset-modifier" data-id="{{@index}}">
+				<input type="text" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.id" value="{{this.id}}" hidden>
+				<input type="text" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.img" value="{{this.img}}" hidden>
+				<input type="checkbox" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.granted" {{checked this.granted}} hidden>
+				<div class="modifier-choice">
+					<div class="flexrow">
+						<input type="text" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.label" value="{{this.label}}" placeholder="{{localize 'PBTA.Modifiers.ChoiceLabel'}}">
+						<label class="modifier-repeatable" data-tooltip="PBTA.Modifiers.RepeatableHint">
+							{{localize "PBTA.Repeatable"}}
+							<input type="checkbox" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.repeatable" {{checked this.repeatable}}>
+						</label>
+						<label {{hidden (not ../grantOn)}}>Advancement</label>
+						<input type="number" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.advancement" value="{{this.advancement}}" {{hidden (not ../grantOn)}}>
+						<div class="item-controls">
+							<a data-action="delete-item">
+								<i class="fa fa-trash"></i>
+							</a>
+						</div>
+					</div>
+					{{> "pbta.modifiers" modifiers=this.modifiers prefix=(concat "system.choiceSets." @../../key ".choices." @index ".modifiers") targets=@root.modifierTargets modes=@root.modifierModes}}
+				</div>
+			</li>
+			{{else}}
 			<li class="form-group choiceset-item" data-uuid="{{this.uuid}}" data-id="{{@index}}">
 				<div class="item flexrow">
 					<img src="{{this.img}}" height="32" width="32">
@@ -72,9 +104,15 @@
 					</a>
 				</div>
 			</li>
+			{{/if}}
 			<hr>
 			{{/each}}
 			<div class="drop-zone">{{localize "PBTA.DropItemsHere"}}</div>
+			<div class="choiceset-controls">
+				<a data-action="add-modifier-choice">
+					<i class="fa fa-plus"></i> {{localize "PBTA.Modifiers.AddChoice"}}
+				</a>
+			</div>
 			{{/each}}
 		</ol>
 		{{/each}}

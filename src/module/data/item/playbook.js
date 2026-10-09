@@ -1,4 +1,5 @@
 import { AttributeChoiceValueField, MappingField } from "../fields.js";
+import { createModifiers } from "../shared.js";
 import { ItemTemplateData } from "./templates/item.js";
 
 export default class PlaybookData extends ItemTemplateData {
@@ -50,8 +51,23 @@ export default class PlaybookData extends ItemTemplateData {
 					type: new foundry.data.fields.StringField({ initial: "multi", choices: ["single", "multi"] }),
 					// optional: new foundry.data.fields.BooleanField({ initial: false }),
 					repeatable: new foundry.data.fields.BooleanField({ initial: true }),
+					// The most choices that can be picked each time the set is offered. 0 is unlimited.
+					max: new foundry.data.fields.NumberField({
+						required: true,
+						integer: true,
+						min: 0,
+						initial: 0,
+						nullable: false
+					}),
+					// Sets sharing a group are alternatives, only one of them is taken each time.
+					group: new foundry.data.fields.StringField({ initial: "" }),
 					choices: new foundry.data.fields.ArrayField(
 						new foundry.data.fields.SchemaField({
+							// A choice either grants the item at `uuid`, or has no item and applies its own modifiers.
+							id: new foundry.data.fields.StringField({ initial: "" }),
+							label: new foundry.data.fields.StringField({ initial: "" }),
+							repeatable: new foundry.data.fields.BooleanField({ initial: false }),
+							modifiers: createModifiers(),
 							uuid: new foundry.data.fields.StringField({ initial: "", required: true }),
 							img: new foundry.data.fields.StringField({ initial: null, nullable: true }),
 							granted: new foundry.data.fields.BooleanField({ initial: false }),

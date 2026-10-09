@@ -1,4 +1,4 @@
-import { createItemResources } from "../shared.js";
+import { createItemResources, createModifiers } from "../shared.js";
 import { ItemTemplateData } from "./templates/item.js";
 
 export default class EquipmentData extends ItemTemplateData {
@@ -18,7 +18,8 @@ export default class EquipmentData extends ItemTemplateData {
 			tags: new foundry.data.fields.StringField({ initial: "" }),
 			itemType: new foundry.data.fields.StringField({ initial: "" }),
 			equipmentType: new foundry.data.fields.StringField({ initial: "" }),
-			actorType: new foundry.data.fields.StringField({ initial: "" })
+			actorType: new foundry.data.fields.StringField({ initial: "" }),
+			modifiers: createModifiers()
 		};
 	}
 }

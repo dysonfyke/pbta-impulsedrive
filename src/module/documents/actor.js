@@ -56,6 +56,89 @@ export default class ActorPbta extends Actor {
 		return this.system?.playbook ?? { name: "", slug: "", uuid: "" };
 	}
 
+	/**
+	 * Works out the changes a list of modifiers would make to this actor.
+	 * @param {object[]} modifiers
+	 * @returns {{updates: object, applied: object[]}}  The actor update, and a record of each change made.
+	 */
+	_prepareModifiers(modifiers) {
+		const { minMod, maxMod } = game.pbta.sheetConfig;
+		const updates = {};
+		const applied = [];
+		for (const { key, mode, value } of modifiers ?? []) {
+			const path = game.pbta.utils.getModifierPath(key);
+			if (!path) continue;
+			const previous = updates[path] ?? foundry.utils.getProperty(this, path);
+			if (previous === undefined) continue;
+			const current = Number(previous) || 0;
+			let next = mode === "set" ? value : current + value;
+			// Stats stay within the configured limits, but one already outside them is left alone.
+			if (key.startsWith("stats.") && path.endsWith(".value")) {
+				if (next > current) next = Math.max(current, Math.min(next, maxMod || Infinity));
+				else if (next < current) next = Math.min(current, Math.max(next, minMod || -Infinity));
+			}
+			if (next === previous) continue;
+			updates[path] = next;
+			applied.push({ key, mode, previous, value: next });
+		}
+		return { updates, applied };
+	}
+
+	/**
+	 * Applies modifiers to this actor, recording them so that they can be reverted.
+	 * @param {string} source       The id of the item or playbook choice granting the modifiers.
+	 * @param {object[]} modifiers
+	 * @returns {Promise}
+	 */
+	async applyModifiers(source, modifiers) {
+		return this._queueModifiers(() => {
+			const { updates, applied } = this._prepareModifiers(modifiers);
+			if (!applied.length) return;
+			const records = this.getFlag(SYSTEM_ID, "appliedModifiers") ?? [];
+			updates[`flags.${SYSTEM_ID}.appliedModifiers`] = [
+				...records,
+				...applied.map((record) => ({ source, ...record }))
+			];
+			return this.update(updates);
+		});
+	}
+
+	/**
+	 * Reverts the modifiers previously applied by the given sources.
+	 * @param {string[]} sources  The ids of the items or playbook choices that granted the modifiers.
+	 * @returns {Promise}
+	 */
+	async revertModifiers(sources) {
+		return this._queueModifiers(() => {
+			const records = this.getFlag(SYSTEM_ID, "appliedModifiers") ?? [];
+			const reverted = records.filter((record) => sources.includes(record.source));
+			if (!reverted.length) return;
+			const updates = {};
+			for (const { key, mode, previous, value } of reverted.reverse()) {
+				const path = game.pbta.utils.getModifierPath(key);
+				const current = updates[path] ?? foundry.utils.getProperty(this, path);
+				if (current === undefined) continue;
+				if (mode === "set") {
+					// Only restore the old value if it hasn't been changed since.
+					if (current === value) updates[path] = previous;
+				} else updates[path] = (Number(current) || 0) - (value - (Number(previous) || 0));
+			}
+			updates[`flags.${SYSTEM_ID}.appliedModifiers`] = records.filter((record) => !sources.includes(record.source));
+			return this.update(updates);
+		});
+	}
+
+	/**
+	 * Runs modifier updates one at a time, as each depends on the values left by the last.
+	 * @param {Function} fn
+	 * @returns {Promise}
+	 */
+	_queueModifiers(fn) {
+		const run = (this._modifierQueue ?? Promise.resolve()).then(fn);
+		this._modifierQueue = run.catch(() => {});
+		return run;
+	}
+
 	/** @override */
 	getRollData() {
 		return {

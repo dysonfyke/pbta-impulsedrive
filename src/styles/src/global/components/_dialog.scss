@@ -1,4 +1,37 @@
 .dialog-content {
+	.pbta-choice-dialog .choice-limit {
+		font-style: italic;
+	}
+
+	.pbta-choice-group-dialog {
+		.items-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+
+			.item {
+				padding: 6px 0;
+
+				+ .item {
+					border-top: 2px solid $ct-gray;
+				}
+			}
+
+			label {
+				align-items: center;
+				gap: 4px;
+
+				input {
+					flex: 0 0 auto;
+				}
+			}
+
+			.group-description {
+				padding-left: 24px;
+			}
+		}
+	}
+
 	.pbta-attribute-dialog,
 	.pbta-choice-dialog {
 		.items-list {

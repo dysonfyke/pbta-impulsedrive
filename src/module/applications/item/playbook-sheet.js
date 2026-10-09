@@ -29,12 +29,16 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		const choicesByAdvancement = {};
 		await Promise.all(this.item.system.choiceSets.map(async (cs, index) => {
 			const choices = await Promise.all(cs.choices.map(async (c) => {
+				if (!c.uuid) {
+					c.isModifier = true;
+					return c;
+				}
 				const item = await fromUuid(c.uuid);
 				if (!item) return;
 				c.name = item.name;
 				return c;
 			}));
-			cs.choices = choices.filter((c) => c?.name);
+			cs.choices = choices.filter((c) => c?.name || c?.isModifier);
 
 			if (!choicesByAdvancement[cs.advancement]) choicesByAdvancement[cs.advancement] = {};
 			if (!choicesByAdvancement[cs.advancement][index]) choicesByAdvancement[cs.advancement][index] = [];
@@ -64,6 +68,7 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		html.find("[data-action='add-choiceset']").on("click", this._onAddChoiceSet.bind(this));
 		html.find("[data-action='delete-choiceset']").on("click", this._onDeleteChoiceSet.bind(this));
 		html.find("[data-action='delete-item']").on("click", this._onDeleteItem.bind(this));
+		html.find("[data-action='add-modifier-choice']").on("click", this._onAddModifierChoice.bind(this));
 		// @todo add click event on item's img/label to render the item
 		html.find("[data-action='update-attributes']").on("click", this._onUpdateAttributes.bind(this));
 		html.find("[data-tab='attributes'] [data-action='add-attribute-choice']").on("click", this._onAddAttributeChoice.bind(this));
@@ -121,6 +126,33 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		const choiceSets = this.item.system.choiceSets;
 		choiceSets[id].choices = choiceSets[id].choices.filter((item, _index) => _index !== Number(index));
 		this.item.update({ "system.choiceSets": choiceSets });
+	}
+
+	_onAddModifierChoice(event) {
+		event.preventDefault();
+		const { id } = event.currentTarget.closest(".choiceset").dataset;
+		if (!id) return;
+		const choiceSets = this.item.system.choiceSets;
+		choiceSets[id].choices.push({
+			id: foundry.utils.randomID(),
+			label: "",
+			img: "icons/svg/upgrade.svg",
+			uuid: "",
+			granted: false,
+			repeatable: false,
+			advancement: 0,
+			modifiers: [{ key: "", mode: "add", value: 1 }]
+		});
+		this.item.update({ "system.choiceSets": choiceSets });
+	}
+
+	/** @override */
+	_updateModifiers(path, modifiers) {
+		// Choice sets are an array, so they have to be updated as a whole.
+		const [, , setId, , choiceId] = path.split(".");
+		const choiceSets = this.item.system.choiceSets;
+		choiceSets[setId].choices[choiceId].modifiers = modifiers;
+		return this.item.update({ "system.choiceSets": choiceSets });
 	}
 
 	_onUpdateAttributes(event) {

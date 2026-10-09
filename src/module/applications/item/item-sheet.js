@@ -145,6 +145,14 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 			context.system.equipmentTypes = equipmentTypes ?? null;
 		}
 
+		if (this.item.system.modifiers || this.item.type === "playbook") {
+			context.modifierTargets = game.pbta.utils.getModifierTargets(actorType);
+			context.modifierModes = {
+				add: "PBTA.Modifiers.Add",
+				set: "PBTA.Modifiers.Set"
+			};
+		}
+
 		return context;
 	}
 
@@ -159,6 +167,43 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 			tagify.on("edit:start", ({ detail: { tag, data } }) => CONFIG.TagHandler.onEdit(tagify, { tag, data }));
 		}
 		html.find(".regenerate-slug").on("click", this._onItemRegenerateSlug.bind(this));
+		html.find("[data-action='add-modifier']").on("click", this._onAddModifier.bind(this));
+		html.find("[data-action='delete-modifier']").on("click", this._onDeleteModifier.bind(this));
+	}
+
+	_onAddModifier(event) {
+		event.preventDefault();
+		const path = event.currentTarget.closest("[data-modifiers]").dataset.modifiers;
+		const modifiers = this._getModifiers(path);
+		modifiers.push({ key: "", mode: "add", value: 1 });
+		this._updateModifiers(path, modifiers);
+	}
+
+	_onDeleteModifier(event) {
+		event.preventDefault();
+		const path = event.currentTarget.closest("[data-modifiers]").dataset.modifiers;
+		const index = Number(event.currentTarget.closest(".modifier").dataset.id);
+		const modifiers = this._getModifiers(path).filter((modifier, i) => i !== index);
+		this._updateModifiers(path, modifiers);
+	}
+
+	/**
+	 * Returns a copy of one of the item's lists of modifiers.
+	 * @param {string} path  The data path of the list.
+	 * @returns {object[]}
+	 */
+	_getModifiers(path) {
+		return foundry.utils.deepClone(foundry.utils.getProperty(this.item, path) ?? []);
+	}
+
+	/**
+	 * Replaces one of the item's lists of modifiers.
+	 * @param {string} path         The data path of the list.
+	 * @param {object[]} modifiers
+	 * @returns {Promise}
+	 */
+	_updateModifiers(path, modifiers) {
+		return this.item.update({ [path]: modifiers });
 	}
 
 	_onItemRegenerateSlug(event) {

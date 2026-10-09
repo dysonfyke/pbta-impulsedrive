@@ -61,6 +61,12 @@
             {{selectOptions system.moveTypes selected=system.moveType labelAttr="label" blank="—" }}
           </select>
         </div>
+
+        <div class="form-group stacked">
+          <label>{{localize "PBTA.Modifiers.Label"}}</label>
+          {{> "pbta.modifiers" modifiers=system.modifiers prefix="system.modifiers" targets=modifierTargets modes=modifierModes}}
+          <p class="notes">{{localize "PBTA.Modifiers.Hint"}}</p>
+        </div>
       </div>
   </section>
 </form>

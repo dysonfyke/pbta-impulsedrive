@@ -42,6 +42,30 @@
 		}
 	}
 
+	.choiceset-modifier {
+		.modifier-choice {
+			flex: 1;
+
+			> .flexrow {
+				align-items: center;
+				gap: 4px;
+			}
+
+			label {
+				flex: 0 0 auto;
+			}
+
+			.modifier-repeatable {
+				display: flex;
+				align-items: center;
+			}
+		}
+	}
+
+	.choiceset-controls {
+		text-align: center;
+	}
+
 	h1 {
 		margin: 0;
 	}

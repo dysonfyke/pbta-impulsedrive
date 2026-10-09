@@ -57,6 +57,11 @@
               </select>
             </div>
           {{/if}}
+          <div class="form-group stacked">
+            <label>{{localize "PBTA.Modifiers.Label"}}</label>
+            {{> "pbta.modifiers" modifiers=system.modifiers prefix="system.modifiers" targets=modifierTargets modes=modifierModes}}
+            <p class="notes">{{localize "PBTA.Modifiers.Hint"}}</p>
+          </div>
         </div>
     </section>
 </form>

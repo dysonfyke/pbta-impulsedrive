@@ -871,6 +871,61 @@ export function getPlaybookLabels() {
 }
 
 /**
+ * Resolves a modifier key, written with sheet config names such as "stats.cool",
+ * "attributes.harm" or "attributes.harm.max", to its path in the actor's data.
+ * @param {string} key
+ * @returns {string|null}
+ */
+export function getModifierPath(key) {
+	const [group, name, property = "value", ...rest] = (key ?? "").split(".");
+	if (!["stats", "attributes"].includes(group) || !name || rest.length) return null;
+	return `system.${group}.${name}.${property}`;
+}
+
+/**
+ * Lists the stats and numeric attributes that modifiers can target.
+ * @param {string} [actorType]  The actor type to list targets for, otherwise all types are included.
+ * @returns {Record<string, string>}  Labels by modifier key.
+ */
+export function getModifierTargets(actorType) {
+	const actorTypes = game.pbta.sheetConfig?.actorTypes ?? {};
+	const configs = actorTypes[actorType] ? [actorTypes[actorType]] : Object.values(actorTypes);
+	const targets = {};
+	for (const config of configs) {
+		for (const [key, stat] of Object.entries(config?.stats ?? {})) {
+			targets[`stats.${key}`] ??= stat.label ?? key;
+		}
+		for (const [key, attr] of Object.entries(config?.attributes ?? {})) {
+			if (!["Number", "Clock", "Xp", "Resource"].includes(attr.type)) continue;
+			const label = attr.label ?? key;
+			targets[`attributes.${key}`] ??= label;
+			if (attr.type !== "Number") {
+				targets[`attributes.${key}.max`] ??= `${label} (${game.i18n.localize("PBTA.Modifiers.Max")})`;
+			}
+		}
+	}
+	return targets;
+}
+
+/**
+ * Describes a list of modifiers, such as "Cool +1, Gear (Max) = 5".
+ * @param {object[]} modifiers
+ * @param {string} [actorType]
+ * @returns {string}
+ */
+export function describeModifiers(modifiers, actorType) {
+	const targets = getModifierTargets(actorType);
+	return (modifiers ?? [])
+		.filter((modifier) => modifier.key)
+		.map(({ key, mode, value }) => {
+			const label = targets[key] ?? key;
+			if (mode === "set") return `${label} = ${value}`;
+			return `${label} ${value < 0 ? "" : "+"}${value}`;
+		})
+		.join(", ");
+}
+
+/**
  * Updates every actor in the world with changes from a
  * new Sheet Config.
  * @param {object} newConfig
@@ -996,6 +1051,7 @@ export async function preloadHandlebarsTemplates() {
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-stats.hbs`,
 
 		// Item partials
+		`systems/${SYSTEM_ID}/templates/items/parts/modifiers.hbs`,
 		`systems/${SYSTEM_ID}/templates/items/parts/move-description.hbs`,
 		`systems/${SYSTEM_ID}/templates/items/parts/playbook-attributes.hbs`,
 		`systems/${SYSTEM_ID}/templates/items/parts/playbook-choicesets.hbs`,

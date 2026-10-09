@@ -1,4 +1,4 @@
-import { createItemResources, createMoveData } from "../shared.js";
+import { createItemResources, createModifiers, createMoveData } from "../shared.js";
 import { ItemTemplateData } from "./templates/item.js";
 
 export default class MoveData extends ItemTemplateData {
@@ -14,7 +14,8 @@ export default class MoveData extends ItemTemplateData {
 				integer: true
 			}),
 			actorType: new foundry.data.fields.StringField({ initial: "" }),
-			choices: new foundry.data.fields.HTMLField()
+			choices: new foundry.data.fields.HTMLField(),
+			modifiers: createModifiers()
 		};
 	}
 }

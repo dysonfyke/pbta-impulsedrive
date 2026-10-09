@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "../../constants.js";
+
 /**
  * Extend the basic ItemSheet with some very simple modifications
  * @extends {ItemSheet}
@@ -19,7 +21,7 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 
 	/** @override */
 	get template() {
-		const path = "systems/pbta/templates/items";
+		const path = `systems/${SYSTEM_ID}/templates/items`;
 		return `${path}/${this.item.type}-sheet.html`;
 	}
 

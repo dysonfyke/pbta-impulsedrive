@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "./constants.js";
+
 /**
  * Perform a system migration for the entire World, applying migrations for Actors, Items, and Compendium packs
  */
@@ -100,7 +102,7 @@ export async function migrateWorld() {
 		await migrateCompendium(p);
 	}
 
-	game.settings.set("pbta", "systemMigrationVersion", game.system.version);
+	game.settings.set(SYSTEM_ID, "systemMigrationVersion", game.system.version);
 	ui.notifications.info(game.i18n.format("PBTA.Migration.Complete", { version }), { permanent: true });
 }
 
@@ -358,8 +360,8 @@ export const migrateSceneData = function (scene, migrationData) {
 export const getMigrationData = async function () {
 	const data = {};
 	try {
-		const icons = await fetch("systems/pbta/json/icon-migration.json");
-		const spellIcons = await fetch("systems/pbta/json/spell-icon-migration.json");
+		const icons = await fetch(`systems/${SYSTEM_ID}/json/icon-migration.json`);
+		const spellIcons = await fetch(`systems/${SYSTEM_ID}/json/spell-icon-migration.json`);
 		data.iconMap = { ...await icons.json(), ...await spellIcons.json() };
 	} catch(err) {
 		console.warn(`Failed to retrieve icon migration data: ${err.message}`);

@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "./constants.js";
+
 /**
  * Transforms any string into "sluggy" string
  * @param {string} string	The string to be transformed.
@@ -242,7 +244,7 @@ export function convertSheetConfig(sheetConfig) {
 				};
 			}
 		} else if (k === "statShifting") {
-			const img = "systems/pbta/assets/icons/svg/back-forth.svg";
+			const img = `systems/${SYSTEM_ID}/assets/icons/svg/back-forth.svg`;
 			const statLabel = game.i18n.localize("PBTA.Stat.label");
 			const statsLabel = game.i18n.localize("PBTA.Stat.labelPl");
 			const label = game.i18n.format("PBTA.Stat.Shifting.label", { stat: statLabel });
@@ -564,7 +566,7 @@ export function applyActorTemplates(clear = false) {
 	}
 
 	if (!game.pbta.sheetConfig.actorTypes) {
-		let menu = game.settings.menus.get("pbta.sheetConfigMenu");
+		let menu = game.settings.menus.get(`${SYSTEM_ID}.sheetConfigMenu`);
 		let app = new menu.type();
 		app.render(true);
 		return;
@@ -724,7 +726,7 @@ export function getTagList(document) {
 		// and have the specific tagify functions get from them instead
 		return game.pbta.tagList;
 	}
-	const { general = "[]", actor: actorTags = {}, item: itemTags = {} } = game.settings.get("pbta", "tagConfig") ?? {};
+	const { general = "[]", actor: actorTags = {}, item: itemTags = {} } = game.settings.get(SYSTEM_ID, "tagConfig") ?? {};
 	const { general: moduleGeneral = "[]", actor: moduleActorTags = {}, item: moduleItemTags = {} } = game.pbta.tagConfigOverride ?? {};
 	const generalTags = parseTags(general);
 	const generalModuleTags = parseTags(moduleGeneral);
@@ -985,25 +987,25 @@ export async function preloadHandlebarsTemplates() {
 	// Define template paths to load
 	const templatePaths = [
 		// Actor partials
-		"systems/pbta/templates/actors/parts/actor-attributes.hbs",
-		"systems/pbta/templates/actors/parts/actor-description.hbs",
-		"systems/pbta/templates/actors/parts/actor-header.hbs",
-		"systems/pbta/templates/actors/parts/actor-inventory.hbs",
-		"systems/pbta/templates/actors/parts/actor-movelist.hbs",
-		"systems/pbta/templates/actors/parts/actor-moves.hbs",
-		"systems/pbta/templates/actors/parts/actor-stats.hbs",
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-attributes.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-description.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-header.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-inventory.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-movelist.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-moves.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-stats.hbs`,
 
 		// Item partials
-		"systems/pbta/templates/items/parts/move-description.hbs",
-		"systems/pbta/templates/items/parts/playbook-attributes.hbs",
-		"systems/pbta/templates/items/parts/playbook-choicesets.hbs",
+		`systems/${SYSTEM_ID}/templates/items/parts/move-description.hbs`,
+		`systems/${SYSTEM_ID}/templates/items/parts/playbook-attributes.hbs`,
+		`systems/${SYSTEM_ID}/templates/items/parts/playbook-choicesets.hbs`,
 
 		// Chat Cards
-		"systems/pbta/templates/chat/stat-shift.hbs",
+		`systems/${SYSTEM_ID}/templates/chat/stat-shift.hbs`,
 
 		// Dialog partials
-		"systems/pbta/templates/dialog/attributes-dialog.hbs",
-		"systems/pbta/templates/dialog/choice-dialog.hbs"
+		`systems/${SYSTEM_ID}/templates/dialog/attributes-dialog.hbs`,
+		`systems/${SYSTEM_ID}/templates/dialog/choice-dialog.hbs`
 	];
 
 	const paths = {};

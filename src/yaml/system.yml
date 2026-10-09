@@ -1,5 +1,5 @@
-id: pbta
-title: Powered by the Apocalypse
+id: pbta-impulsedrive
+title: "PbtA: Impulse Drive"
 description: Run games for any PbtA system in Foundry VTT!
 version: "1.2.0"
 compatibility:
@@ -45,7 +45,7 @@ grid:
 socket: true
 url: https://github.com/dysonfyke/pbta-impulsedrive
 manifest: https://github.com/dysonfyke/pbta-impulsedrive/releases/latest/download/system.json
-download: https://github.com/dysonfyke/pbta-impulsedrive/releases/latest/download/pbta.zip
+download: https://github.com/dysonfyke/pbta-impulsedrive/releases/latest/download/pbta-impulsedrive.zip
 changelog: https://github.com/dysonfyke/pbta-impulsedrive/blob/main/CHANGELOG.md
 bugs: https://github.com/dysonfyke/pbta-impulsedrive/issues
 flags:

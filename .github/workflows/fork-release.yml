@@ -37,17 +37,17 @@ jobs:
       run: node ./.github/workflows/update-fork-manifest.js --tag=${{ github.ref_name }} --project=${{ github.repository }}
 
     - name: Create package directory
-      run: cp ./dist/system.json ./system.json && mv dist pbta
+      run: cp ./dist/system.json ./system.json && mv dist pbta-impulsedrive
 
-    - name: Generate pbta.zip
+    - name: Generate pbta-impulsedrive.zip
       uses: montudor/action-zip@v1
       with:
-        args: zip -q pbta.zip -r pbta
+        args: zip -q pbta-impulsedrive.zip -r pbta-impulsedrive
 
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "system.json,pbta.zip"
+        artifacts: "system.json,pbta-impulsedrive.zip"
         generateReleaseNotes: true
         prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
         allowUpdates: true

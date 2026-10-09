@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "../../constants.js";
+
 /**
  * Extend the basic ActorSheet with some very simple modifications
  * @extends {ActorSheet}
@@ -55,7 +57,7 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
 	/** @override */
 	get template() {
-		const path = "systems/pbta/templates/actors";
+		const path = `systems/${SYSTEM_ID}/templates/actors`;
 		return `${path}/actor-sheet.html`;
 	}
 
@@ -103,8 +105,9 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			isNPC: this.actor.baseType === "npc",
 			config: CONFIG.PBTA,
 			flags: foundry.utils.mergeObject({
-				pbta: { rollMode: "def" } }, this.actor?.flags ?? {}
+				[SYSTEM_ID]: { rollMode: "def" } }, this.actor?.flags ?? {}
 			),
+			rollModeName: `flags.${SYSTEM_ID}.rollMode`,
 			enrichmentOptions: {
 				secrets: this.actor.isOwner,
 				rollData: this.actor.getRollData(),
@@ -119,10 +122,12 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				"hideUses",
 				"hideAdvancement"
 			].reduce((obj, key) => {
-				obj[key] = game.settings.get("pbta", key);
+				obj[key] = game.settings.get(SYSTEM_ID, key);
 				return obj;
 			}, {})
 		};
+
+		context.rollMode = context.flags[SYSTEM_ID].rollMode;
 
 		// Prepare items.
 		await this._prepareItems(context);
@@ -675,7 +680,7 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		this._statShifting = {};
 		this.render(false);
 
-		const content = await foundry.applications.handlebars.renderTemplate("systems/pbta/templates/chat/stat-shift.hbs", {
+		const content = await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/chat/stat-shift.hbs`, {
 			actor: this.actor,
 			labels,
 			up: up ? this.actor.system.stats[up] : "",
@@ -746,7 +751,7 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		if (Object.keys(choiceUpdate).length > 0) {
 			await playbook.update(choiceUpdate);
 			const grantedItems = await playbook.grantChoices(choiceUpdate);
-			await playbook.update({ "flags.pbta": { grantedItems } });
+			await playbook.update({ [`flags.${SYSTEM_ID}`]: { grantedItems } });
 		}
 	}
 

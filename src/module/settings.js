@@ -1,11 +1,12 @@
 import { PbtaSettingsConfigDialog } from "./forms/sheet-config.js";
 import { PbtaTagConfigDialog } from "./forms/tag-config.js";
+import { SYSTEM_ID } from "./constants.js";
 
 /**
  * Register all of the system's settings.
  */
 export function registerSettings() {
-	game.settings.registerMenu("pbta", "sheetConfigMenu", {
+	game.settings.registerMenu(SYSTEM_ID, "sheetConfigMenu", {
 		name: game.i18n.localize("PBTA.Settings.sheetConfig.name"),
 		label: game.i18n.localize("PBTA.Settings.sheetConfig.title"),
 		hint: game.i18n.localize("PBTA.Settings.sheetConfig.hint"),
@@ -15,7 +16,7 @@ export function registerSettings() {
 		scope: "world"
 	});
 
-	game.settings.registerMenu("pbta", "tagConfigMenu", {
+	game.settings.registerMenu(SYSTEM_ID, "tagConfigMenu", {
 		name: game.i18n.localize("PBTA.Settings.tagConfig.name"),
 		label: game.i18n.localize("PBTA.Settings.tagConfig.label"),
 		hint: game.i18n.localize("PBTA.Settings.tagConfig.hint"),
@@ -28,7 +29,7 @@ export function registerSettings() {
 	/**
 	 * Track the system version upon which point a migration was last applied
 	 */
-	game.settings.register("pbta", "systemMigrationVersion", {
+	game.settings.register(SYSTEM_ID, "systemMigrationVersion", {
 		name: "System Migration Version",
 		scope: "world",
 		config: false,
@@ -36,7 +37,7 @@ export function registerSettings() {
 		default: ""
 	});
 
-	game.settings.register("pbta", "autoCollapseItemCards", {
+	game.settings.register(SYSTEM_ID, "autoCollapseItemCards", {
 		name: "PBTA.Settings.AutoCollapseCard.name",
 		hint: "PBTA.Settings.AutoCollapseCard.hint",
 		scope: "client",
@@ -45,7 +46,7 @@ export function registerSettings() {
 		type: Boolean
 	});
 
-	game.settings.register("pbta", "autoCollapseItemCardsResult", {
+	game.settings.register(SYSTEM_ID, "autoCollapseItemCardsResult", {
 		name: "PBTA.Settings.AutoCollapseCardResult.name",
 		hint: "PBTA.Settings.AutoCollapseCardResult.hint",
 		scope: "client",
@@ -54,7 +55,7 @@ export function registerSettings() {
 		type: Boolean
 	});
 
-	game.settings.register("pbta", "advForward", {
+	game.settings.register(SYSTEM_ID, "advForward", {
 		name: game.i18n.localize("PBTA.Settings.advForward.name"),
 		hint: game.i18n.localize("PBTA.Settings.advForward.hint"),
 		scope: "world",
@@ -63,7 +64,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideRollFormula", {
+	game.settings.register(SYSTEM_ID, "hideRollFormula", {
 		name: game.i18n.localize("PBTA.Settings.hideRollFormula.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideRollFormula.hint"),
 		scope: "world",
@@ -72,7 +73,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideForward", {
+	game.settings.register(SYSTEM_ID, "hideForward", {
 		name: game.i18n.localize("PBTA.Settings.hideForward.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideForward.hint"),
 		scope: "world",
@@ -81,7 +82,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideHold", {
+	game.settings.register(SYSTEM_ID, "hideHold", {
 		name: game.i18n.localize("PBTA.Settings.hideHold.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideHold.hint"),
 		scope: "world",
@@ -90,7 +91,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideOngoing", {
+	game.settings.register(SYSTEM_ID, "hideOngoing", {
 		name: game.i18n.localize("PBTA.Settings.hideOngoing.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideOngoing.hint"),
 		scope: "world",
@@ -99,7 +100,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideRollMode", {
+	game.settings.register(SYSTEM_ID, "hideRollMode", {
 		name: game.i18n.localize("PBTA.Settings.hideRollMode.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideRollMode.hint"),
 		scope: "world",
@@ -108,7 +109,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "hideUses", {
+	game.settings.register(SYSTEM_ID, "hideUses", {
 		name: game.i18n.localize("PBTA.Settings.hideUses.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideUses.hint"),
 		scope: "world",
@@ -117,7 +118,7 @@ export function registerSettings() {
 		default: true
 	});
 
-	game.settings.register("pbta", "hideAdvancement", {
+	game.settings.register(SYSTEM_ID, "hideAdvancement", {
 		name: game.i18n.localize("PBTA.Settings.hideAdvancement.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideAdvancement.hint"),
 		scope: "world",
@@ -132,7 +133,7 @@ export function registerSettings() {
 		onChange: (value) => ui.actors.render()
 	});
 
-	game.settings.register("pbta", "sheetConfig", {
+	game.settings.register(SYSTEM_ID, "sheetConfig", {
 		name: "PBTA Sheet Config",
 		scope: "world",
 		config: false,
@@ -235,7 +236,7 @@ export function registerSettings() {
 		}
 	});
 
-	game.settings.register("pbta", "sheetConfigOverride", {
+	game.settings.register(SYSTEM_ID, "sheetConfigOverride", {
 		name: "Override PBTA Sheet Config",
 		scope: "world",
 		config: false,
@@ -243,7 +244,7 @@ export function registerSettings() {
 		default: false
 	});
 
-	game.settings.register("pbta", "tagConfig", {
+	game.settings.register(SYSTEM_ID, "tagConfig", {
 		name: "PBTA Tag Config",
 		scope: "world",
 		config: false,

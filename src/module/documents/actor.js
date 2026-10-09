@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "../constants.js";
+
 /**
  * Extends the basic Actor class for Powered by the Apocalypse.
  * @extends {Actor}
@@ -72,9 +74,9 @@ export default class ActorPbta extends Actor {
 	}
 
 	async clearAdv(updates) {
-		if (!game.settings.get("pbta", "advForward")) return;
-		const rollMode = this.getFlag("pbta", "rollMode") ?? "def";
-		if (rollMode !== "def") updates["flags.pbta.rollMode"] = "def";
+		if (!game.settings.get(SYSTEM_ID, "advForward")) return;
+		const rollMode = this.getFlag(SYSTEM_ID, "rollMode") ?? "def";
+		if (rollMode !== "def") updates[`flags.${SYSTEM_ID}.rollMode`] = "def";
 	}
 
 	async clearForward(updates, roll) {
@@ -149,8 +151,8 @@ export default class ActorPbta extends Actor {
 		const { label, roll, showResults } = event.currentTarget.dataset;
 		const itemId = event.currentTarget.closest(".item")?.dataset.itemId;
 		const options = {};
-		if (!game.settings.get("pbta", "hideRollMode")) {
-			options.rollMode = this.flags?.pbta?.rollMode;
+		if (!game.settings.get(SYSTEM_ID, "hideRollMode")) {
+			options.rollMode = this.flags?.[SYSTEM_ID]?.rollMode;
 		}
 
 		// Handle rolls coming directly from the ability score.

@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "../constants.js";
+
 /**
  * Create a Macro from an Item drop.
  * Get an existing item macro if one exists, otherwise create a new one.
@@ -17,8 +19,8 @@ export async function createPbtaMacro(data, slot) {
 		img: itemData.img,
 		command: `pbta.documents.macro.rollItemMacro("${itemData.name}")`,
 		flags: {
-			"pbta.itemMacro": true,
-			"pbta.itemUuid": data.uuid
+			[`${SYSTEM_ID}.itemMacro`]: true,
+			[`${SYSTEM_ID}.itemUuid`]: data.uuid
 		}
 	});
 	const macro = game.macros.find((m) => {

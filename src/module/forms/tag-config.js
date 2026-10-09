@@ -1,10 +1,12 @@
+import { SYSTEM_ID } from "../constants.js";
+
 export class PbtaTagConfigDialog extends FormApplication {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			title: game.i18n.localize("PBTA.Settings.tagConfig.label"),
 			id: "pbta-tag-config",
 			classes: ["pbta", "pbta-tag-config"],
-			template: "systems/pbta/templates/dialog/tag-config.html",
+			template: `systems/${SYSTEM_ID}/templates/dialog/tag-config.html`,
 			width: 720,
 			height: "auto",
 			resizable: true,
@@ -13,7 +15,7 @@ export class PbtaTagConfigDialog extends FormApplication {
 	}
 
 	async getData(options) {
-		const { general = {}, actor = {}, item = {} } = game.settings.get("pbta", "tagConfig") ?? {};
+		const { general = {}, actor = {}, item = {} } = game.settings.get(SYSTEM_ID, "tagConfig") ?? {};
 
 		for (let key of Object.keys(actor)) {
 			if (key === "all") {
@@ -69,7 +71,7 @@ export class PbtaTagConfigDialog extends FormApplication {
 
 	async _updateObject(event, formData) {
 		const { userTags = {} } = foundry.utils.expandObject(formData);
-		await game.settings.set("pbta", "tagConfig", userTags);
+		await game.settings.set(SYSTEM_ID, "tagConfig", userTags);
 		game.pbta.tagList = null;
 	}
 

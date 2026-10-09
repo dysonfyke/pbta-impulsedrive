@@ -1,4 +1,5 @@
 import { codeMirrorAddToml } from "./codemirror.toml.js";
+import { SYSTEM_ID } from "../constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -35,21 +36,21 @@ export class PbtaSettingsConfigDialog extends HandlebarsApplicationMixin(Applica
 	};
 
 	static PARTS = {
-		body: { template: "systems/pbta/templates/dialog/sheet-config.hbs", root: true },
+		body: { template: `systems/${SYSTEM_ID}/templates/dialog/sheet-config.hbs`, root: true },
 		footer: { template: "templates/generic/form-footer.hbs" }
 	};
 
 	/* -------------------------------------------- */
 
 	get sheetOverriden() {
-		return game.settings.get("pbta", "sheetConfigOverride");
+		return game.settings.get(SYSTEM_ID, "sheetConfigOverride");
 	}
 
 	/* -------------------------------------------- */
 
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
-		const sheetConfig = game.settings.get("pbta", "sheetConfig") || {};
+		const sheetConfig = game.settings.get(SYSTEM_ID, "sheetConfig") || {};
 		context.sheetConfigOverride = this.sheetOverriden;
 		context.tomlString = sheetConfig.tomlString || "";
 		context.buttons = this.#prepareButtons();
@@ -98,7 +99,7 @@ export class PbtaSettingsConfigDialog extends HandlebarsApplicationMixin(Applica
 
 	static async #onReset(event) {
 		event.preventDefault();
-		this.codeEditor.setValue(game.settings.settings.get("pbta.sheetConfig").default.tomlString);
+		this.codeEditor.setValue(game.settings.settings.get(`${SYSTEM_ID}.sheetConfig`).default.tomlString);
 		ui.notifications.info(game.i18n.localize("PBTA.Messages.sheetConfig.reset"));
 	}
 
@@ -125,8 +126,8 @@ export class PbtaSettingsConfigDialog extends HandlebarsApplicationMixin(Applica
 				formData.object.computed = computed;
 			}
 			// Check if there was any actual change
-			if (JSON.stringify(game.settings.get("pbta", "sheetConfig")) !== JSON.stringify(formData.object)) {
-				await game.settings.set("pbta", "sheetConfig", formData.object);
+			if (JSON.stringify(game.settings.get(SYSTEM_ID, "sheetConfig")) !== JSON.stringify(formData.object)) {
+				await game.settings.set(SYSTEM_ID, "sheetConfig", formData.object);
 				this.updatedSheet = true;
 			}
 		}

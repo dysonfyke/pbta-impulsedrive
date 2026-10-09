@@ -1,3 +1,5 @@
+import { SYSTEM_ID } from "../constants.js";
+
 export default class ItemPbta extends Item {
 	static getDefaultArtwork(itemData) {
 		if (itemData.type === "move" || itemData.type === "npcMove") {
@@ -5,7 +7,7 @@ export default class ItemPbta extends Item {
 		} else if (itemData.type === "playbook") {
 			return { img: "icons/svg/book.svg" };
 		} else if (itemData.type === "tag") {
-			return { img: "systems/pbta/assets/icons/svg/tag.svg" };
+			return { img: `systems/${SYSTEM_ID}/assets/icons/svg/tag.svg` };
 		}
 		return { img: this.DEFAULT_ICON };
 	}
@@ -43,7 +45,7 @@ export default class ItemPbta extends Item {
 			|| this.type === "equipment"
 			|| (this.type !== "npcMove" && !this.system.rollType)
 		) {
-			const content = await foundry.applications.handlebars.renderTemplate("systems/pbta/templates/chat/chat-move.html", {
+			const content = await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/chat/chat-move.html`, {
 				actor: this.actor,
 				tokenId: this.actor?.token?.uuid || null,
 				item: this,
@@ -85,7 +87,7 @@ export default class ItemPbta extends Item {
 				image: this.img,
 				rollMode: game.settings.get("core", "rollMode"),
 				flags: {
-					pbta: {
+					[SYSTEM_ID]: {
 						itemUuid: this.uuid
 					}
 				}
@@ -178,7 +180,7 @@ export default class ItemPbta extends Item {
 				if (Object.keys(choiceUpdate).length > 0) {
 					this.updateSource(choiceUpdate);
 					const grantedItems = await this.grantChoices(choiceUpdate);
-					this.updateSource({ "flags.pbta": { grantedItems } });
+					this.updateSource({ [`flags.${SYSTEM_ID}`]: { grantedItems } });
 				}
 				if (this.system.actorType) {
 					const stats = foundry.utils.duplicate(this.parent.system.stats);
@@ -212,7 +214,7 @@ export default class ItemPbta extends Item {
 
 	async grantChoices(choices) {
 		const items = [];
-		const grantedItems = foundry.utils.getProperty(this, "flags.pbta.grantedItems") ?? [];
+		const grantedItems = foundry.utils.getProperty(this, `flags.${SYSTEM_ID}.grantedItems`) ?? [];
 		const choiceSets = choices?.system?.choiceSets
 			?? choices?.["system.choiceSets"]
 			?? [];
@@ -271,7 +273,7 @@ export default class ItemPbta extends Item {
 					}
 					await Dialog.wait({
 						title: `${game.i18n.localize("PBTA.Attribute")}: ${label}`,
-						content: await foundry.applications.handlebars.renderTemplate("systems/pbta/templates/dialog/attributes-dialog.hbs", {
+						content: await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/dialog/attributes-dialog.hbs`, {
 							attribute,
 							choices,
 							description,
@@ -357,7 +359,7 @@ export default class ItemPbta extends Item {
 
 				await Dialog.wait({
 					title: `${game.i18n.localize("PBTA.Choice")}: ${title}`,
-					content: await foundry.applications.handlebars.renderTemplate("systems/pbta/templates/dialog/choice-dialog.hbs", { choices: validChoices, desc, parent: this.parent }),
+					content: await foundry.applications.handlebars.renderTemplate(`systems/${SYSTEM_ID}/templates/dialog/choice-dialog.hbs`, { choices: validChoices, desc, parent: this.parent }),
 					default: "ok",
 					// @todo add some warning about pending grants
 					close: () => {
@@ -433,7 +435,7 @@ export default class ItemPbta extends Item {
 
 	async _preDelete(options, user) {
 		if (this.type ==="playbook" && this.parent) {
-			const grantedItems = this.getFlag("pbta", "grantedItems") ?? [];
+			const grantedItems = this.getFlag(SYSTEM_ID, "grantedItems") ?? [];
 
 			const type = game.i18n.localize(this.constructor.metadata.label);
 			const buttons = {

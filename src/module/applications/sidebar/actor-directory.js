@@ -1,5 +1,7 @@
+import { SYSTEM_ID } from "../../constants.js";
+
 export default class ActorDirectoryPbtA extends foundry.applications.sidebar.tabs.ActorDirectory {
-	static _entryPartial = "systems/pbta/templates/sidebar/actor-document-partial.hbs";
+	static _entryPartial = `systems/${SYSTEM_ID}/templates/sidebar/actor-document-partial.hbs`;
 
 	static DEFAULT_OPTIONS = {
 		collection: "Actor",
@@ -9,7 +11,7 @@ export default class ActorDirectoryPbtA extends foundry.applications.sidebar.tab
 	async _prepareContext(options) {
 		const context = await super._prepareContext(options);
 		Object.assign(context, {
-			hideAdvancement: game.settings.get("pbta", "hideAdvancement") !== "none"
+			hideAdvancement: game.settings.get(SYSTEM_ID, "hideAdvancement") !== "none"
 		});
 		return context;
 	}

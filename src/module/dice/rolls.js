@@ -1,7 +1,9 @@
-export default class RollPbtA extends Roll {
-	static CHAT_TEMPLATE = "systems/pbta/templates/chat/chat-move.html";
+import { SYSTEM_ID } from "../constants.js";
 
-	static EVALUATION_TEMPLATE = "systems/pbta/templates/chat/roll-dialog.html";
+export default class RollPbtA extends Roll {
+	static CHAT_TEMPLATE = `systems/${SYSTEM_ID}/templates/chat/chat-move.html`;
+
+	static EVALUATION_TEMPLATE = `systems/${SYSTEM_ID}/templates/chat/roll-dialog.html`;
 
 	/**
 	 * A convenience reference for whether this RollPbtA has advantage

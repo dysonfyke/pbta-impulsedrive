@@ -9,6 +9,7 @@ import * as dice from "./dice/_module.js";
 import * as documents from "./documents/_module.js";
 import * as migrations from "./migration.js";
 import * as utils from "./utils.js";
+import { SYSTEM_ID } from "./constants.js";
 
 /* -------------------------------------------- */
 /*  Foundry VTT Initialization                  */
@@ -53,28 +54,28 @@ Hooks.once("init", async function () {
 
 	// Register sheet application classes
 	foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
-	foundry.documents.collections.Actors.registerSheet("pbta", applications.actor.PbtaActorSheet, {
+	foundry.documents.collections.Actors.registerSheet(SYSTEM_ID, applications.actor.PbtaActorSheet, {
 		types: ["character"],
 		makeDefault: true,
 		label: "PBTA.SheetClassCharacter"
 	});
-	foundry.documents.collections.Actors.registerSheet("pbta", applications.actor.PbtaActorOtherSheet, {
+	foundry.documents.collections.Actors.registerSheet(SYSTEM_ID, applications.actor.PbtaActorOtherSheet, {
 		types: ["other"],
 		makeDefault: true,
 		label: "PBTA.SheetClassOther"
 	});
-	foundry.documents.collections.Actors.registerSheet("pbta", applications.actor.PbtaActorNpcSheet, {
+	foundry.documents.collections.Actors.registerSheet(SYSTEM_ID, applications.actor.PbtaActorNpcSheet, {
 		types: ["npc"],
 		makeDefault: true,
 		label: "PBTA.SheetClassNPC"
 	});
 	foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
-	foundry.documents.collections.Items.registerSheet("pbta", applications.item.PbtaItemSheet, {
+	foundry.documents.collections.Items.registerSheet(SYSTEM_ID, applications.item.PbtaItemSheet, {
 		makeDefault: true,
 		label: "PBTA.SheetClassItem"
 	});
-	foundry.documents.collections.Items.unregisterSheet("pbta", applications.item.PbtaItemSheet, { types: ["playbook"] });
-	foundry.documents.collections.Items.registerSheet("pbta", applications.item.PlaybookSheet, {
+	foundry.documents.collections.Items.unregisterSheet(SYSTEM_ID, applications.item.PbtaItemSheet, { types: ["playbook"] });
+	foundry.documents.collections.Items.registerSheet(SYSTEM_ID, applications.item.PlaybookSheet, {
 		makeDefault: true,
 		types: ["playbook"],
 		label: "PBTA.SheetClassPlaybook"
@@ -95,10 +96,10 @@ Hooks.on("i18nInit", () => {
 	registerSettings();
 
 	// Build out character data structures.
-	const pbtaSettings = game.settings.get("pbta", "sheetConfig");
+	const pbtaSettings = game.settings.get(SYSTEM_ID, "sheetConfig");
 
 	// Retrieve overridden config, if enabled.
-	if (pbtaSettings?.overridden && game.settings.get("pbta", "sheetConfigOverride")) {
+	if (pbtaSettings?.overridden && game.settings.get(SYSTEM_ID, "sheetConfigOverride")) {
 		game.pbta.sheetConfig = pbtaSettings.overridden;
 	} else if (pbtaSettings?.computed) {
 		// Otherwise, retrieve computed config.
@@ -140,7 +141,7 @@ Hooks.once("ready", async function () {
 	// Override sheet config.
 	if (game.user.isGM) {
 		// Force sheet config override off, unless a module changes it.
-		await game.settings.set("pbta", "sheetConfigOverride", false);
+		await game.settings.set(SYSTEM_ID, "sheetConfigOverride", false);
 
 		// Allow modules to override the sheet config.
 		Hooks.callAll("pbtaSheetConfig");
@@ -149,16 +150,16 @@ Hooks.once("ready", async function () {
 		const timeout = 1000;
 		setTimeout(() => {
 			// Retrieve the previous configuration.
-			let existingConfig = game.settings.get("pbta", "sheetConfig") ?? {};
+			let existingConfig = game.settings.get(SYSTEM_ID, "sheetConfig") ?? {};
 			// @todo hack to fix the old the default value. Remove in a future update.
 			if (typeof existingConfig !== "object") {
 				existingConfig = {};
 			}
 			// If a module enabled the override, assign it to the config so that player
 			// clients can use it without the GM being logged in.
-			if (game.settings.get("pbta", "sheetConfigOverride")) {
+			if (game.settings.get(SYSTEM_ID, "sheetConfigOverride")) {
 				existingConfig.overridden = game.pbta.sheetConfig;
-				game.settings.set("pbta", "sheetConfig", existingConfig);
+				game.settings.set(SYSTEM_ID, "sheetConfig", existingConfig);
 			} else if (existingConfig?.overridden) {
 				// Otherwise, delete the override config.
 
@@ -179,7 +180,7 @@ Hooks.once("ready", async function () {
 					utils.applyActorTemplates(true);
 					ui.notifications.info(game.i18n.localize("PBTA.Messages.sheetConfig.previousSettingRestored"));
 				}
-				game.settings.set("pbta", "sheetConfig", existingConfig);
+				game.settings.set(SYSTEM_ID, "sheetConfig", existingConfig);
 			}
 		}, timeout);
 	}
@@ -203,9 +204,9 @@ Hooks.once("ready", async function () {
 
 	// Run migrations.
 	if (!game.user.isGM) return;
-	const cv = game.settings.get("pbta", "systemMigrationVersion");
+	const cv = game.settings.get(SYSTEM_ID, "systemMigrationVersion");
 	const totalDocuments = game.actors.size + game.scenes.size + game.items.size;
-	if (!cv && totalDocuments === 0) return game.settings.set("pbta", "systemMigrationVersion", game.system.version);
+	if (!cv && totalDocuments === 0) return game.settings.set(SYSTEM_ID, "systemMigrationVersion", game.system.version);
 	if (cv && !foundry.utils.isNewerVersion(game.system.flags.needsMigrationVersion, cv)) return;
 
 	// Perform the migration
@@ -222,10 +223,10 @@ Hooks.on("renderChatMessageHTML", (data, html, options) => {
 	const resultDetails = html.querySelector(".result-details");
 	const resultChoices = html.querySelector(".result-choices");
 	const cardButtons = html.querySelector(".pbta-chat-card .card-buttons");
-	if (cardContent && game.settings.get("pbta", "autoCollapseItemCards")) {
+	if (cardContent && game.settings.get(SYSTEM_ID, "autoCollapseItemCards")) {
 		cardContent.style.display = "none";
 	}
-	if (resultDetails && resultChoices && game.settings.get("pbta", "autoCollapseItemCardsResult")) {
+	if (resultDetails && resultChoices && game.settings.get(SYSTEM_ID, "autoCollapseItemCardsResult")) {
 		resultDetails.style.display = "none";
 		resultChoices.style.display = "none";
 	}

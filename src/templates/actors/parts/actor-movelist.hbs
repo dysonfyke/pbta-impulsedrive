@@ -54,7 +54,7 @@
 			{{#if (not sheetSettings.hideRollMode)}}
 			<div class="cell cell--roll-mode">
 				<label class="cell__title">{{localize "PBTA.RollMode"}}</label>
-				{{radioBoxes 'flags.pbta.rollMode' config.rollModes checked=flags.pbta.rollMode localize=true}}
+				{{radioBoxes rollModeName config.rollModes checked=rollMode localize=true}}
 			</div>
 			{{/if}}
 		</section>

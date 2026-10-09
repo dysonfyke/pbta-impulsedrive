@@ -62,6 +62,16 @@
 		}
 	}
 
+	.choiceset-toggle {
+		.fas {
+			transition: all ease-in-out 0.25s;
+		}
+
+		&.collapsed .fas {
+			transform: rotate(180deg);
+		}
+	}
+
 	.choiceset-controls {
 		text-align: center;
 	}

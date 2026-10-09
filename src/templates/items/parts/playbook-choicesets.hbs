@@ -16,12 +16,16 @@
 				<div class="form-fields">
 					<input type="text" name="system.choiceSets.{{@../key}}.title" value="{{this.title}}" />
 					<div class="item-controls">
+						<a class="choiceset-toggle {{#if this.collapsed}}collapsed{{/if}}" data-action="toggle-choiceset" data-tooltip="PBTA.ItemGrantToggle">
+							<i class="fas fa-chevron-up"></i>
+						</a>
 						<a type="button" data-action="delete-choiceset">
 							<i class="fa fa-trash"></i>
 						</a>
 					</div>
 				</div>
 			</div>
+			<div class="choiceset-body" {{#if this.collapsed}}style="display: none;"{{/if}}>
 			<div class="form-group">
 				<label>{{localize "PBTA.Common.Description"}}</label>
 				<div class="form-fields">
@@ -112,6 +116,7 @@
 				<a data-action="add-modifier-choice">
 					<i class="fa fa-plus"></i> {{localize "PBTA.Modifiers.AddChoice"}}
 				</a>
+			</div>
 			</div>
 			{{/each}}
 		</ol>

@@ -12,6 +12,13 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		});
 	}
 
+	/**
+	 * Indexes of the choice sets on the sheet that have been collapsed.
+	 * @type {Set<number>}
+	 * @protected
+	 */
+	_collapsed = new Set();
+
 	get unsupportedItemTypes() {
 		return new Set(["npcMove", "playbook", "tag"]);
 	}
@@ -39,6 +46,7 @@ export default class PlaybookSheet extends PbtaItemSheet {
 				return c;
 			}));
 			cs.choices = choices.filter((c) => c?.name || c?.isModifier);
+			cs.collapsed = this._collapsed.has(index);
 
 			if (!choicesByAdvancement[cs.advancement]) choicesByAdvancement[cs.advancement] = {};
 			if (!choicesByAdvancement[cs.advancement][index]) choicesByAdvancement[cs.advancement][index] = [];
@@ -67,6 +75,7 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		html.find("select[name='system.actorType']").on("change", this._onChangeActorType.bind(this));
 		html.find("[data-action='add-choiceset']").on("click", this._onAddChoiceSet.bind(this));
 		html.find("[data-action='delete-choiceset']").on("click", this._onDeleteChoiceSet.bind(this));
+		html.find("[data-action='toggle-choiceset']").on("click", this._onToggleChoiceSet.bind(this));
 		html.find("[data-action='delete-item']").on("click", this._onDeleteItem.bind(this));
 		html.find("[data-action='add-modifier-choice']").on("click", this._onAddModifierChoice.bind(this));
 		// @todo add click event on item's img/label to render the item
@@ -115,7 +124,29 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		const { id } = event.target.closest(".choiceset").dataset;
 		if (!id) return;
 		const choiceSets = this.item.system.choiceSets.filter((item, index) => index !== Number(id));
+		// The sets after the deleted one move up, so their collapsed state has to follow them.
+		this._collapsed = new Set(
+			Array.from(this._collapsed)
+				.filter((index) => index !== Number(id))
+				.map((index) => (index > Number(id) ? index - 1 : index))
+		);
 		this.item.update({ "system.choiceSets": choiceSets });
+	}
+
+	_onToggleChoiceSet(event) {
+		event.preventDefault();
+		const toggler = $(event.currentTarget);
+		const choiceSet = toggler.closest(".choiceset");
+		const id = Number(choiceSet.data("id"));
+
+		toggler.toggleClass("collapsed");
+		if (this._collapsed.has(id)) {
+			this._collapsed.delete(id);
+			choiceSet.find(".choiceset-body").slideDown(200);
+		} else {
+			this._collapsed.add(id);
+			choiceSet.find(".choiceset-body").slideUp(200);
+		}
 	}
 
 	_onDeleteItem(event) {

@@ -45,6 +45,7 @@ PBTA:
   Forward: "Forward"
   ItemGrantAdd: "Add Item Grant"
   ItemGrants: "Item Grants"
+  ItemGrantToggle: "Collapse / Expand"
   KeepItems: "Keep Items"
   Modifier: "Modifier"
   Modifiers:

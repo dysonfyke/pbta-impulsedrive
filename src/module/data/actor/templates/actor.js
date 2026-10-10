@@ -15,7 +15,13 @@ export class ActorDataTemplate extends foundry.abstract.TypeDataModel {
 				// SchemaField instead, which silently drops any property not
 				// listed here — `limited` has to be declared explicitly or it
 				// never persists on the actor, regardless of what getData() checks.
-				limited: new foundry.data.fields.BooleanField({ initial: false })
+				limited: new foundry.data.fields.BooleanField({ initial: false }),
+				// The entries of a "Notes" section, by id. They are kept as a mapping
+				// so that a single note can be updated without resending the others.
+				entries: new MappingField(new foundry.data.fields.SchemaField({
+					title: new foundry.data.fields.StringField({ initial: "" }),
+					content: new foundry.data.fields.HTMLField({ initial: "" })
+				}))
 			}))
 		};
 	}

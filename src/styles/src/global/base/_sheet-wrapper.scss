@@ -102,6 +102,25 @@
           min-height: 500px;
         }
       }
+
+      // Sections other than a single full-width text box only take the room they need.
+      &.cell--half,
+      &.cell--bio-Text,
+      &.cell--bio-Notes {
+        height: auto;
+      }
+
+      &.cell--half .editor .editor-container {
+        min-height: 250px;
+      }
+
+      &.cell--bio-Notes .editor {
+        height: auto;
+
+        .editor-container {
+          min-height: 200px;
+        }
+      }
     }
   }
 

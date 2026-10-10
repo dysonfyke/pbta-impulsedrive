@@ -35,6 +35,13 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	_collapsed = { moves: new Set(), equipment: new Set() };
 
 	/**
+	 * IDs for notes on the sheet that have been expanded.
+	 * @type {Set<string>}
+	 * @protected
+	 */
+	_expandedNotes = new Set();
+
+	/**
 	 * Stats targetted by the Stat Shifting feature.
 	 * @type {object}
 	 * @protected
@@ -133,16 +140,33 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		await this._prepareItems(context);
 		await this._prepareAttrs(context);
 
-		for (let [k, v] of Object.entries(context.system.details)) {
+		// The sheet config decides the order of the description sections and how each one is displayed.
+		const typeConfig = game.pbta.sheetConfig.actorTypes?.[this.actor.sheetType] ?? {};
+		const detailsConfig = typeConfig.details ?? {};
+		const details = {};
+		const enrich = (html) => foundry.applications.ux.TextEditor.implementation.enrichHTML(html ?? "", context.enrichmentOptions);
+		for (const k of new Set([...Object.keys(detailsConfig), ...Object.keys(context.system.details)])) {
+			const v = context.system.details[k];
+			if (!v) continue;
 			// Descriptions marked `limited = true` are only meant to be seen by
 			// the actor's owner (e.g. a "Secrets" field), so hide them from
 			// anyone who only has Limited permission on this actor.
-			if (context.limited && v.limited) {
-				delete context.system.details[k];
-				continue;
-			}
-			context.system.details[k].enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(v?.value ?? "", context.enrichmentOptions);
+			if (context.limited && v.limited) continue;
+			const { type, width, description } = detailsConfig[k] ?? {};
+			v.type = CONFIG.PBTA.detailTypes.includes(type) ? type : "LongText";
+			v.width = width === "half" ? "half" : "full";
+			v.description = description ?? "";
+			if (v.type === "Notes") {
+				for (const [id, note] of Object.entries(v.entries ?? {})) {
+					note.enriched = await enrich(note.content);
+					note.expanded = this._expandedNotes.has(id);
+				}
+			} else v.enriched = await enrich(v.value);
+			details[k] = v;
 		}
+		context.system.details = details;
+		context.descriptionLabel = typeConfig.descriptionLabel
+			|| game.i18n.localize(context.isCharacter ? "PBTA.Character" : "PBTA.Description");
 
 		// Add playbooks.
 		if (this.actor.baseType === "character") {
@@ -454,6 +478,49 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
 		// Resources.
 		html.find(".resource-control").on("click", this._onResourceControl.bind(this));
+
+		// Notes.
+		html.find(".note-toggle").on("click", this._onNoteToggle.bind(this));
+		html.find(".note-create").on("click", this._onNoteCreate.bind(this));
+		html.find(".note-delete").on("click", this._onNoteDelete.bind(this));
+	}
+
+	_onNoteToggle(event) {
+		event.preventDefault();
+		const toggler = $(event.currentTarget);
+		const note = toggler.closest(".note");
+		const content = note.find(".note-content");
+		const id = note.data("noteId");
+
+		toggler.toggleClass("open");
+		if (this._expandedNotes.has(id)) {
+			this._expandedNotes.delete(id);
+			content.slideUp(200);
+		} else {
+			this._expandedNotes.add(id);
+			content.slideDown(200);
+		}
+	}
+
+	async _onNoteCreate(event) {
+		event.preventDefault();
+		const { key } = event.currentTarget.closest(".cell--bio").dataset;
+		const id = foundry.utils.randomID();
+		this._expandedNotes.add(id);
+		await this.actor.update({ [`system.details.${key}.entries.${id}`]: { title: "", content: "" } });
+	}
+
+	async _onNoteDelete(event) {
+		event.preventDefault();
+		const { key } = event.currentTarget.closest(".cell--bio").dataset;
+		const id = event.currentTarget.closest(".note").dataset.noteId;
+		const confirmed = await Dialog.confirm({
+			title: game.i18n.localize("PBTA.Notes.Delete"),
+			content: `<p>${game.i18n.localize("PBTA.Notes.DeleteWarning")}</p>`
+		});
+		if (!confirmed) return;
+		this._expandedNotes.delete(id);
+		await this.actor.update({ [`system.details.${key}.entries.-=${id}`]: null });
 	}
 
 	_onResourceControl(event) {

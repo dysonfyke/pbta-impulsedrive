@@ -314,6 +314,10 @@ export function convertSheetConfig(sheetConfig) {
 				actorType.label = game.i18n.localize(v.label);
 			}
 
+			if (v.descriptionLabel) {
+				actorType.descriptionLabel = game.i18n.localize(v.descriptionLabel);
+			}
+
 			if (v.description) {
 				actorType.details = {};
 				if (typeof v.description === "string") {

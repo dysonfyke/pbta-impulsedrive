@@ -1,9 +1,40 @@
 <div class="tab description" data-group="primary" data-tab="description">
 	<div class="sheet-tab">
 		{{#each system.details as |result key|}}
-			<div class="cell cell--bio {{key}}">
+			<div class="cell cell--bio cell--bio-{{result.type}} cell--{{result.width}} {{key}}" data-key="{{key}}">
 				{{#if result.label}}<label class="cell__title">{{result.label}}</label>{{/if}}
+				{{#if result.description}}<p class="cell__description">{{result.description}}</p>{{/if}}
+				{{#if (eq result.type "Notes")}}
+				<ol class="notes-list">
+					{{#each result.entries as |note id|}}
+					<li class="note" data-note-id="{{id}}">
+						<div class="note-header flexrow">
+							<a class="note-toggle {{#if note.expanded}}open{{/if}}" data-tooltip="PBTA.Notes.Toggle">
+								<i class="fas fa-chevron-down"></i>
+							</a>
+							<input type="text" name="system.details.{{key}}.entries.{{id}}.title" value="{{note.title}}" placeholder="{{localize 'PBTA.Notes.Untitled'}}">
+							{{#if @root.editable}}
+							<a class="note-delete" data-tooltip="PBTA.Notes.Delete">
+								<i class="fas fa-trash"></i>
+							</a>
+							{{/if}}
+						</div>
+						<div class="note-content" {{#unless note.expanded}}style="display: none;"{{/unless}}>
+							{{editor note.enriched target=(concat "system.details" key "entries" id "content" join=".") button=true owner=@root.owner editable=@root.editable engine="prosemirror" collaborate=false}}
+						</div>
+					</li>
+					{{/each}}
+				</ol>
+				{{#if @root.editable}}
+				<a class="note-create">
+					<i class="fas fa-plus"></i> {{localize "PBTA.Notes.Add"}}
+				</a>
+				{{/if}}
+				{{else if (eq result.type "Text")}}
+				<input type="text" name="system.details.{{key}}.value" value="{{result.value}}">
+				{{else}}
 				{{editor result.enriched target=(concat "system.details" key "value" join=".") button=true owner=@root.owner editable=@root.editable engine="prosemirror" collaborate=false}}
+				{{/if}}
 			</div>
 		{{/each}}
 	</div>

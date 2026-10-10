@@ -13,5 +13,71 @@
       min-height: 350px;
       resize: none;
     }
+
+    .cell__description {
+      margin: 0 0 4px;
+      font-style: italic;
+    }
+
+    .notes-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      .note + .note {
+        border-top: 2px solid $ct-gray;
+      }
+    }
+
+    .note {
+      padding: 4px 0;
+    }
+
+    .note-header {
+      align-items: center;
+      gap: 4px;
+
+      a {
+        flex: 0 0 24px;
+        text-align: center;
+      }
+
+      input {
+        font-weight: bold;
+      }
+    }
+
+    .note-toggle {
+      .fas {
+        transition: all ease-in-out 0.25s;
+      }
+
+      &.open .fas {
+        transform: rotate(180deg);
+      }
+    }
+
+    .note-create {
+      display: block;
+      padding: 4px 0;
+      text-align: center;
+    }
+  }
+}
+
+// Description sections sit side by side when they are given a half width.
+.description > .sheet-tab {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: 10px;
+
+  > .cell--bio {
+    flex: 0 0 100%;
+    min-width: 0;
+  }
+
+  > .cell--half {
+    flex: 1 1 calc(50% - 10px);
   }
 }

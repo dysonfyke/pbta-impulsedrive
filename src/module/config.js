@@ -1,5 +1,11 @@
 export const PBTA = {};
 
+PBTA.detailTypes = [
+	"Text",
+	"LongText",
+	"Notes"
+];
+
 PBTA.attrTypes = [
 	"Number",
 	"Clock",

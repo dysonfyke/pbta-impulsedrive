@@ -3,7 +3,8 @@ export const PBTA = {};
 PBTA.detailTypes = [
 	"Text",
 	"LongText",
-	"Notes"
+	"Notes",
+	"Moves"
 ];
 
 PBTA.attrTypes = [

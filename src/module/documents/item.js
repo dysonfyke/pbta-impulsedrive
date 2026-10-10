@@ -333,12 +333,43 @@ export default class ItemPbta extends Item {
 		}
 	}
 
-	async handleChoices(data) {
+	/**
+	 * Offers the choice sets that are granted when the given attribute fills up.
+	 * @param {string} trigger  The attribute's sheet config name.
+	 * @returns {Promise}
+	 */
+	async handleTrigger(trigger) {
+		if (this.type !== "playbook" || !this.parent) return;
+		const isTriggered = (cs) => cs.grantOn === 2 && cs.trigger === trigger;
+		if (!this.system.choiceSets.some(isTriggered)) return;
+		const choiceUpdate = await this.handleChoices(this, { trigger });
+		const taken = choiceUpdate["system.choiceSets"]
+			.filter((cs) => isTriggered(cs) && cs.choices.some((c) => c.pending));
+		if (!taken.length) return;
+		await this.update(choiceUpdate);
+		const grantedItems = await this.grantChoices(choiceUpdate);
+		await this.update({ [`flags.${SYSTEM_ID}`]: { grantedItems } });
+		if (taken.some((cs) => cs.reset)) {
+			await this.parent.update({ [`system.attributes.${trigger}.value`]: 0 });
+		}
+	}
+
+	/**
+	 * Offers the playbook's choice sets that the actor is currently due.
+	 * @param {object} data               The playbook's data.
+	 * @param {object} [options]
+	 * @param {string} [options.trigger]  Only offer the sets triggered by this attribute filling up,
+	 *                                    instead of those granted at creation and on advancement.
+	 * @returns {Promise<object>}         The playbook update recording what was taken.
+	 */
+	async handleChoices(data, { trigger } = {}) {
 		const choiceSets = data.system?.choiceSets ?? [];
 		const eligible = [];
 		for (const choiceSet of choiceSets) {
 			const { advancement, granted, repeatable } = choiceSet;
-			if (advancement > this.parent.advancements || (granted && !repeatable)) continue;
+			const isTriggered = choiceSet.grantOn === 2;
+			if (trigger ? (!isTriggered || choiceSet.trigger !== trigger) : isTriggered) continue;
+			if ((!isTriggered && advancement > this.parent.advancements) || (granted && !repeatable)) continue;
 			const validChoices = await this._getValidChoices(choiceSet);
 			if (validChoices.some((c) => !c.disabled)) eligible.push({ choiceSet, validChoices });
 		}

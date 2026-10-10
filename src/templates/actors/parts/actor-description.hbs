@@ -2,6 +2,35 @@
 	<div class="sheet-tab">
 		{{#each system.details as |result key|}}
 			<div class="cell cell--bio cell--bio-{{result.type}} cell--{{result.width}} {{key}}" data-key="{{key}}">
+				{{#if (eq result.type "Moves")}}
+				<div class="cell--moves cell--group cell--{{result.moveType}}" data-key="{{result.moveType}}">
+					<h2 class="cell__title">
+						<label>{{result.label}}</label>
+						<div>
+							<button
+								type="button"
+								class="item-control item-create"
+								{{#if @root.isCharacter}}
+								data-type="move"
+								{{else}}
+								data-type="npcMove"
+								{{/if}}
+								data-move-type="{{result.moveType}}"
+								>
+								<i class="fas fa-plus"></i>
+							</button>
+						</div>
+					</h2>
+					{{#if result.description}}<p class="cell__description">{{result.description}}</p>{{/if}}
+					<ol class="items-list">
+					{{#each result.moves as |item|}}
+						<li class="item flexrow" data-item-id="{{item._id}}" draggable="true">
+						{{> "pbta.actor-moves" item=item statSettings=@root.statSettings sheetSettings=@root.sheetSettings}}
+						</li>
+					{{/each}}
+					</ol>
+				</div>
+				{{else}}
 				{{#if result.label}}<label class="cell__title">{{result.label}}</label>{{/if}}
 				{{#if result.description}}<p class="cell__description">{{result.description}}</p>{{/if}}
 				{{#if (eq result.type "Notes")}}
@@ -34,6 +63,7 @@
 				<input type="text" name="system.details.{{key}}.value" value="{{result.value}}">
 				{{else}}
 				{{editor result.enriched target=(concat "system.details" key "value" join=".") button=true owner=@root.owner editable=@root.editable engine="prosemirror" collaborate=false}}
+				{{/if}}
 				{{/if}}
 			</div>
 		{{/each}}

@@ -189,8 +189,33 @@ export default class ActorPbta extends Actor {
 	/*  Event Handlers                              */
 	/* -------------------------------------------- */
 
+	async _preUpdate(changed, options, user) {
+		if ((await super._preUpdate(changed, options, user)) === false) return false;
+
+		// Note the attributes that this update fills up, for the playbook grants they trigger.
+		const isFull = (value, max) => Number(max) > 0 && Number(value) >= Number(max);
+		const filled = [];
+		for (const [key, change] of Object.entries(changed.system?.attributes ?? {})) {
+			const attr = this.system.attributes?.[key];
+			if (!attr || !change || !("max" in attr)) continue;
+			if (isFull(attr.value, attr.max)) continue;
+			if (isFull(change.value ?? attr.value, change.max ?? attr.max)) filled.push(key);
+		}
+		if (filled.length) options.pbtaFilled = filled;
+	}
+
 	async _onUpdate(changed, options, user) {
 		if ((await super._onUpdate(changed, options, user)) === false) return false;
+
+		if ((game.user.id === user) && options.pbtaFilled?.length) {
+			const playbook = this.items.find((i) => i.type === "playbook");
+			// Not awaited, as the player may take their time over the choice.
+			if (playbook) {
+				(async () => {
+					for (const key of options.pbtaFilled) await playbook.handleTrigger(key);
+				})();
+			}
+		}
 
 		const tokens = this.isToken ? [this.token] : this.getActiveTokens(true, true);
 		if (tokens.length) {

@@ -87,6 +87,10 @@ export default class PlaybookData extends ItemTemplateData {
 						initial: 0,
 						nullable: false
 					}),
+					// For sets granted when an attribute fills up: the attribute's sheet config (TOML) name,
+					// and whether it is emptied again once a choice has been taken.
+					trigger: new foundry.data.fields.StringField({ initial: "" }),
+					reset: new foundry.data.fields.BooleanField({ initial: false }),
 					granted: new foundry.data.fields.BooleanField({ initial: false }),
 					advancement: new foundry.data.fields.NumberField({
 						required: true,

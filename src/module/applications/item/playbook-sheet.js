@@ -31,8 +31,16 @@ export default class PlaybookSheet extends PbtaItemSheet {
 		const context = await super.getData();
 		context.grantOptions = {
 			0: "PBTA.PlaybookGrantOnInstantly",
-			1: "PBTA.PlaybookGrantOnAdvancement"
+			1: "PBTA.PlaybookGrantOnAdvancement",
+			2: "PBTA.PlaybookGrantOnTrigger"
 		};
+		// Attributes that can fill up, and so trigger a grant.
+		const attributes = game.pbta.sheetConfig?.actorTypes?.[this.item.system.actorType]?.attributes ?? {};
+		context.triggerTargets = Object.fromEntries(
+			Object.entries(attributes)
+				.filter(([key, attr]) => ["Clock", "Xp", "Resource"].includes(attr.type))
+				.map(([key, attr]) => [key, attr.label ?? key])
+		);
 		const choicesByAdvancement = {};
 		await Promise.all(this.item.system.choiceSets.map(async (cs, index) => {
 			const choices = await Promise.all(cs.choices.map(async (c) => {
@@ -48,9 +56,11 @@ export default class PlaybookSheet extends PbtaItemSheet {
 			cs.choices = choices.filter((c) => c?.name || c?.isModifier);
 			cs.collapsed = this._collapsed.has(index);
 
-			if (!choicesByAdvancement[cs.advancement]) choicesByAdvancement[cs.advancement] = {};
-			if (!choicesByAdvancement[cs.advancement][index]) choicesByAdvancement[cs.advancement][index] = [];
-			choicesByAdvancement[cs.advancement][index].push(cs);
+			// Triggered grants aren't tied to an advancement, so they are listed on their own.
+			const section = cs.grantOn === 2 ? "trigger" : cs.advancement;
+			if (!choicesByAdvancement[section]) choicesByAdvancement[section] = {};
+			if (!choicesByAdvancement[section][index]) choicesByAdvancement[section][index] = [];
+			choicesByAdvancement[section][index].push(cs);
 		}));
 		context.choicesByAdvancement = choicesByAdvancement;
 

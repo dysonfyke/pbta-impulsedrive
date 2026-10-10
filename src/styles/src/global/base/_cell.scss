@@ -292,3 +292,12 @@
     justify-self: stretch;
   }
 }
+
+.cell__checkboxes,
+.cell__radio {
+  textarea.input-longtext {
+    flex: 1;
+    min-height: 3.5em;
+    resize: vertical;
+  }
+}

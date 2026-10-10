@@ -2,7 +2,9 @@
 	{{#each choicesByAdvancement as | advancement |}}
 	<li>
 		<h1>
-			{{#if (gt @key 0)}}
+			{{#if (eq @key "trigger")}}
+			{{localize "PBTA.TriggeredGrants"}}
+			{{else if (gt @key 0)}}
 			{{localize "PBTA.AdvancementNumber" number=@key}}
 			{{else}}
 			{{localize "PBTA.StartingGrants"}}
@@ -38,7 +40,13 @@
 					<select name="system.choiceSets.{{@../key}}.grantOn">
 						{{ selectOptions @root.grantOptions selected=this.grantOn localize=true}}
 					</select>
-					<input type="number" name="system.choiceSets.{{@../key}}.advancement" value="{{this.advancement}}" {{hidden (not this.grantOn)}}>
+					<input type="number" name="system.choiceSets.{{@../key}}.advancement" value="{{this.advancement}}" {{hidden (ne this.grantOn 1)}}>
+					<select name="system.choiceSets.{{@../key}}.trigger" data-tooltip="PBTA.PlaybookTriggerHint" {{hidden (ne this.grantOn 2)}}>
+						{{selectOptions @root.triggerTargets selected=this.trigger blank=""}}
+						{{#if (and this.trigger (not (lookup @root.triggerTargets this.trigger)))}}
+						<option value="{{this.trigger}}" selected>{{this.trigger}}</option>
+						{{/if}}
+					</select>
 					{{#if (not this.grantOn)}}
 					<input type="checkbox" name="system.choiceSets.{{@../key}}.repeatable" {{checked this.repeatable}} hidden>
 					{{else}}
@@ -46,6 +54,14 @@
 						<label>{{localize "PBTA.Repeatable"}}</label>
 						<input type="checkbox" name="system.choiceSets.{{@../key}}.repeatable" {{checked this.repeatable}}>
 					</div>
+					{{/if}}
+					{{#if (eq this.grantOn 2)}}
+					<div class="flexrow" data-tooltip="PBTA.PlaybookTriggerResetHint">
+						<label>{{localize "PBTA.PlaybookTriggerReset"}}</label>
+						<input type="checkbox" name="system.choiceSets.{{@../key}}.reset" {{checked this.reset}}>
+					</div>
+					{{else}}
+					<input type="checkbox" name="system.choiceSets.{{@../key}}.reset" {{checked this.reset}} hidden>
 					{{/if}}
 				</div>
 			</div>
@@ -76,8 +92,8 @@
 							{{localize "PBTA.Repeatable"}}
 							<input type="checkbox" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.repeatable" {{checked this.repeatable}}>
 						</label>
-						<label {{hidden (not ../grantOn)}}>Advancement</label>
-						<input type="number" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.advancement" value="{{this.advancement}}" {{hidden (not ../grantOn)}}>
+						<label {{hidden (ne ../grantOn 1)}}>Advancement</label>
+						<input type="number" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.advancement" value="{{this.advancement}}" {{hidden (ne ../grantOn 1)}}>
 						<div class="item-controls">
 							<a data-action="delete-item">
 								<i class="fa fa-trash"></i>
@@ -98,8 +114,8 @@
 				<input type="text" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.name" value="{{this.name}}" hidden>
 				<input type="checkbox" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.granted" {{checked this.granted}} hidden>
 				<div>
-					<label {{hidden (not ../grantOn)}}>Advancement</label>
-					<input type="number" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.advancement" value="{{this.advancement}}" {{hidden (not ../grantOn)}}>
+					<label {{hidden (ne ../grantOn 1)}}>Advancement</label>
+					<input type="number" name="system.choiceSets.{{@../../key}}.choices.{{@index}}.advancement" value="{{this.advancement}}" {{hidden (ne ../grantOn 1)}}>
 				</div>
 
 				<div class="item-controls">

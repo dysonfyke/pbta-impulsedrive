@@ -152,11 +152,18 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			// the actor's owner (e.g. a "Secrets" field), so hide them from
 			// anyone who only has Limited permission on this actor.
 			if (context.limited && v.limited) continue;
-			const { type, width, description } = detailsConfig[k] ?? {};
+			const { type, width, description, moveType } = detailsConfig[k] ?? {};
 			v.type = CONFIG.PBTA.detailTypes.includes(type) ? type : "LongText";
 			v.width = width === "half" ? "half" : "full";
 			v.description = description ?? "";
-			if (v.type === "Notes") {
+			if (v.type === "Moves") {
+				// Moves are hidden from anyone with only Limited permission, as on the moves tab.
+				if (context.limited) continue;
+				// The moves of this type are listed here instead of on the moves tab.
+				v.moveType = moveType ?? k;
+				v.moves = context.moves[v.moveType] ?? [];
+				delete context.moves[v.moveType];
+			} else if (v.type === "Notes") {
 				for (const [id, note] of Object.entries(v.entries ?? {})) {
 					note.enriched = await enrich(note.content);
 					note.expanded = this._expandedNotes.has(id);
@@ -235,6 +242,7 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	 * @param {object} context Data prop on actor.
 	 */
 	async _prepareAttrs(context) {
+		const attrConfig = game.pbta.sheetConfig.actorTypes?.[this.actor.sheetType]?.attributes ?? {};
 		for (let [attrKey, attrValue] of Object.entries(context.system.attributes)) {
 			if (!attrValue.position) continue;
 			const position = `attr${attrValue.position.capitalize()}`;
@@ -254,6 +262,10 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				continue;
 			}
 			context.system[position][attrKey] = attrValue;
+			// Attributes along the top share the row evenly unless the sheet config gives them a width.
+			if (attrValue.position === "top") {
+				attrValue.style = this._getWidthStyle(attrConfig[attrKey]?.width);
+			}
 			if (attrValue.type === "LongText") {
 				context.system[position][attrKey].attrName = `system.attributes.${attrKey}.value`;
 				context.system[position][attrKey].enriched =
@@ -263,6 +275,20 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				attrValue.showResults = true;
 			}
 		}
+	}
+
+	/**
+	 * Converts a width from the sheet config into the style for a cell in a row.
+	 * @param {number|string} [width]  A number is the cell's share of the row relative to the others,
+	 *                                 while a length such as "25%" or "120px" is a fixed size.
+	 * @returns {string}
+	 */
+	_getWidthStyle(width) {
+		if ((typeof width === "number") && (width > 0)) return `flex: ${width} 1 0;`;
+		if ((typeof width === "string") && /^\d+(\.\d+)?(%|px|em|rem)$/.test(width.trim())) {
+			return `flex: 0 0 ${width.trim()};`;
+		}
+		return "";
 	}
 
 	_sortValues(context, sortKeys, dataPath) {

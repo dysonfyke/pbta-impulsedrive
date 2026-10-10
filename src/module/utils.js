@@ -452,6 +452,7 @@ export function convertAttr(attrGroup, position) {
 		attr.playbook = attrValue.playbook ?? null;
 		attr.limited = attrValue.limited ?? false;
 		attr.position = attrValue.position ?? position;
+		attr.width = attrValue.width ?? null;
 
 		if (!attrValue.type) {
 			// If an object structure was used and no type was specified, it's invalid.

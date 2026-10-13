@@ -7,6 +7,12 @@ export class ActorDataTemplate extends foundry.abstract.TypeDataModel {
 			attributes: new foundry.data.fields.ObjectField(),
 			attrLeft: new foundry.data.fields.ObjectField({ readonly: true }),
 			attrTop: new foundry.data.fields.ObjectField({ readonly: true }),
+			// The pages of the sheet's notes tab, by id.
+			notes: new MappingField(new foundry.data.fields.SchemaField({
+				title: new foundry.data.fields.StringField({ initial: "" }),
+				content: new foundry.data.fields.HTMLField({ initial: "" }),
+				sort: new foundry.data.fields.NumberField({ initial: 0, integer: true, nullable: false })
+			})),
 			details: new MappingField(new foundry.data.fields.SchemaField({
 				label: new foundry.data.fields.StringField({ initial: "" }),
 				value: new foundry.data.fields.HTMLField({ initial: "" }),

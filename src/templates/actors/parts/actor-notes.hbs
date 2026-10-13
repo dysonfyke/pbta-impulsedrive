@@ -1,0 +1,33 @@
+<div class="tab journal" data-group="primary" data-tab="journal">
+	<div class="journal-layout flexrow">
+		<aside class="journal-sidebar flexcol">
+			<ol class="journal-directory">
+				{{#each notes as |note|}}
+				<li class="journal-page {{#if note.active}}active{{/if}}" data-note-id="{{note.id}}">
+					<a class="journal-select">{{#if note.title}}{{note.title}}{{else}}{{localize "PBTA.Notes.Untitled"}}{{/if}}</a>
+				</li>
+				{{/each}}
+			</ol>
+			{{#if editable}}
+			<button type="button" class="journal-create">
+				<i class="fas fa-plus"></i> {{localize "PBTA.Notes.Add"}}
+			</button>
+			{{/if}}
+		</aside>
+		<section class="journal-content flexcol">
+			{{#if activeNote}}
+			<header class="journal-header flexrow">
+				<input type="text" name="system.notes.{{activeNote.id}}.title" value="{{activeNote.title}}" placeholder="{{localize 'PBTA.Notes.Untitled'}}">
+				{{#if editable}}
+				<a class="journal-delete" data-tooltip="PBTA.Notes.Delete">
+					<i class="fas fa-trash"></i>
+				</a>
+				{{/if}}
+			</header>
+			{{editor activeNote.enriched target=(concat "system.notes" activeNote.id "content" join=".") button=false owner=owner editable=editable engine="prosemirror" collaborate=false}}
+			{{else}}
+			<p class="journal-empty">{{localize "PBTA.Notes.Empty"}}</p>
+			{{/if}}
+		</section>
+	</div>
+</div>

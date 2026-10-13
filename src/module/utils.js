@@ -318,6 +318,14 @@ export function convertSheetConfig(sheetConfig) {
 				actorType.descriptionLabel = game.i18n.localize(v.descriptionLabel);
 			}
 
+			// Whether the sheet has a notes tab, and what it is called.
+			if (v.notes !== undefined) {
+				actorType.notes = Boolean(v.notes);
+			}
+			if (v.notesLabel) {
+				actorType.notesLabel = game.i18n.localize(v.notesLabel);
+			}
+
 			if (v.description) {
 				actorType.details = {};
 				if (typeof v.description === "string") {
@@ -1053,6 +1061,7 @@ export async function preloadHandlebarsTemplates() {
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-inventory.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-movelist.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-moves.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-notes.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-stats.hbs`,
 
 		// Item partials

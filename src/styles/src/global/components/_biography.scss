@@ -81,3 +81,87 @@
     flex: 1 1 calc(50% - 10px);
   }
 }
+
+// The notes tab: a list of page titles beside the page being read.
+.tab.journal {
+  height: 100%;
+
+  .journal-layout {
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 10px;
+    height: 100%;
+    margin: 10px 0;
+  }
+
+  .journal-sidebar {
+    flex: 0 0 180px;
+    justify-content: flex-start;
+    padding-right: 10px;
+    border-right: 2px solid $ct-gray;
+
+    button {
+      flex: 0 0 auto;
+      margin-top: 6px;
+    }
+  }
+
+  .journal-directory {
+    flex: 0 1 auto;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  .journal-page {
+    border-left: 3px solid transparent;
+
+    a {
+      display: block;
+      padding: 4px 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &.active {
+      border-left-color: $c-black;
+      background: rgba(0, 0, 0, 0.075);
+      font-weight: bold;
+    }
+  }
+
+  .journal-content {
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-start;
+
+    .editor {
+      flex: 1;
+      min-height: 400px;
+    }
+  }
+
+  .journal-header {
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+
+    input {
+      font-size: var(--font-size-18);
+      font-weight: bold;
+    }
+
+    a {
+      flex: 0 0 24px;
+      text-align: center;
+    }
+  }
+
+  .journal-empty {
+    font-style: italic;
+    text-align: center;
+  }
+}
+

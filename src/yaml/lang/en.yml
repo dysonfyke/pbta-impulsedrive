@@ -68,6 +68,8 @@ PBTA:
     Add: "Add Note"
     Delete: "Delete Note"
     DeleteWarning: "This note will be permanently deleted and cannot be recovered."
+    Empty: "There are no notes yet."
+    Label: "Notes"
     Toggle: "Show / Hide"
     Untitled: "Untitled note"
   New: "New"

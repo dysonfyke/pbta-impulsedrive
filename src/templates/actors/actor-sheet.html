@@ -42,6 +42,9 @@
 					<a class="item" data-tab="moves">{{localize "PBTA.Moves"}}</a>
 					<a class="item" data-tab="equipment">{{localize "PBTA.Equipment"}}</a>
 					{{/unless}}
+					{{#if showNotes}}
+					<a class="item" data-tab="journal">{{notesLabel}}</a>
+					{{/if}}
 				</nav>
 
 				{{!-- Sheet Body --}}
@@ -54,6 +57,11 @@
 
 					{{!-- Owned Equipment Tab --}}
 					{{> "pbta.actor-inventory" }}
+
+					{{!-- Notes Tab --}}
+					{{#if showNotes}}
+					{{> "pbta.actor-notes" }}
+					{{/if}}
 				</section>
 			</section>
 		</section>

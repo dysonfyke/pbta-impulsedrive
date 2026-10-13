@@ -42,6 +42,35 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	_expandedNotes = new Set();
 
 	/**
+	 * ID of the page shown on the notes tab.
+	 * @type {string|null}
+	 * @protected
+	 */
+	_activeNote = null;
+
+	/**
+	 * Whether the open page of the notes tab has changes that are yet to be saved.
+	 * @type {boolean}
+	 * @protected
+	 */
+	_journalDirty = false;
+
+	/**
+	 * The text of a notes page that is in the middle of being saved, so that
+	 * a re-render in the meantime doesn't show the older saved text.
+	 * @type {{id: string, content: string}|null}
+	 * @protected
+	 */
+	_journalDraft = null;
+
+	/**
+	 * Saves the open notes page shortly after the last change to it.
+	 * @type {Function}
+	 * @protected
+	 */
+	_journalAutosave = foundry.utils.debounce(() => this._saveJournal(), 1000);
+
+	/**
 	 * Stats targetted by the Stat Shifting feature.
 	 * @type {object}
 	 * @protected
@@ -83,12 +112,41 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		if (playbook && !(this.options.classes.includes(`playbook-${playbook}`))) {
 			this.options.classes.push(`playbook-${playbook}`);
 		}
+		// Rendering replaces the notes editor, so anything typed into it has to be kept first.
+		this._saveJournal();
 		return super.render(force, options);
 	}
 
 	async close(options={}) {
 		this._statShifting = {};
+		await this._saveJournal();
 		return super.close(options);
+	}
+
+	/** @override */
+	activateEditor(name, options={}, initialContent="") {
+		const draft = this._journalDraft;
+		if (draft && (name === `system.notes.${draft.id}.content`)) initialContent = draft.content;
+		return super.activateEditor(name, options, initialContent);
+	}
+
+	/**
+	 * Saves the open page of the notes tab, without re-rendering the sheet so that typing isn't interrupted.
+	 * @returns {Promise}
+	 */
+	async _saveJournal() {
+		if (!this._journalDirty) return;
+		this._journalDirty = false;
+		const id = this._activeNote;
+		const doc = this.editors?.[`system.notes.${id}.content`]?.instance?.view?.state?.doc;
+		if (!doc || !(id in (this.actor.system.notes ?? {}))) return;
+		const draft = { id, content: foundry.prosemirror.dom.serializeString(doc.content) };
+		this._journalDraft = draft;
+		try {
+			await this.actor.update({ [`system.notes.${id}.content`]: draft.content }, { render: false });
+		} finally {
+			if (this._journalDraft === draft) this._journalDraft = null;
+		}
 	}
 
 	/* -------------------------------------------- */
@@ -172,6 +230,22 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			details[k] = v;
 		}
 		context.system.details = details;
+		// The notes tab lists the pages by title, and shows one of them at a time.
+		context.showNotes = !context.limited && (typeConfig.notes ?? context.isCharacter);
+		if (context.showNotes) {
+			context.notesLabel = typeConfig.notesLabel || game.i18n.localize("PBTA.Notes.Label");
+			context.notes = Object.entries(context.system.notes ?? {})
+				.map(([id, note]) => ({ id, ...note }))
+				.sort((a, b) => a.sort - b.sort);
+			const active = context.notes.find((note) => note.id === this._activeNote) ?? context.notes[0];
+			this._activeNote = active?.id ?? null;
+			if (active) {
+				active.active = true;
+				active.enriched = await enrich(active.content);
+				context.activeNote = active;
+			}
+		}
+
 		context.descriptionLabel = typeConfig.descriptionLabel
 			|| game.i18n.localize(context.isCharacter ? "PBTA.Character" : "PBTA.Description");
 
@@ -509,6 +583,47 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		html.find(".note-toggle").on("click", this._onNoteToggle.bind(this));
 		html.find(".note-create").on("click", this._onNoteCreate.bind(this));
 		html.find(".note-delete").on("click", this._onNoteDelete.bind(this));
+		html.find(".journal-select").on("click", this._onJournalSelect.bind(this));
+		html.find(".journal-create").on("click", this._onJournalCreate.bind(this));
+		html.find(".journal-delete").on("click", this._onJournalDelete.bind(this));
+		if (this.isEditable) {
+			// Typing, pasting and the editor's toolbar all count as changes to the page.
+			html.find(".journal-content .editor").on("input keyup paste cut drop click", () => {
+				this._journalDirty = true;
+				this._journalAutosave();
+			});
+		}
+	}
+
+	async _onJournalSelect(event) {
+		event.preventDefault();
+		const id = event.currentTarget.closest(".journal-page").dataset.noteId;
+		await this._saveJournal();
+		this._activeNote = id;
+		this.render(false);
+	}
+
+	async _onJournalCreate(event) {
+		event.preventDefault();
+		await this._saveJournal();
+		const id = foundry.utils.randomID();
+		const sort = Math.max(0, ...Object.values(this.actor.system.notes ?? {}).map((note) => note.sort)) + 1;
+		this._activeNote = id;
+		await this.actor.update({ [`system.notes.${id}`]: { title: "", content: "", sort } });
+	}
+
+	async _onJournalDelete(event) {
+		event.preventDefault();
+		const id = this._activeNote;
+		if (!id) return;
+		const confirmed = await Dialog.confirm({
+			title: game.i18n.localize("PBTA.Notes.Delete"),
+			content: `<p>${game.i18n.localize("PBTA.Notes.DeleteWarning")}</p>`
+		});
+		if (!confirmed) return;
+		this._journalDirty = false;
+		this._activeNote = null;
+		await this.actor.update({ [`system.notes.-=${id}`]: null });
 	}
 
 	_onNoteToggle(event) {

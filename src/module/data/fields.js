@@ -58,7 +58,7 @@ export class FormulaField extends foundry.data.fields.StringField {
 }
 
 /**
- * A subclass of ObjectField that represents a mapping of keys to the provided DataField type.
+ * A subclass of TypedObjectField that represents a mapping of keys to the provided DataField type.
  *
  * @param {DataField} model                    The class of DataField which should be embedded in this field.
  * @param {MappingFieldOptions} [options={}]   Options which configure the behavior of the field.
@@ -67,18 +67,20 @@ export class FormulaField extends foundry.data.fields.StringField {
  * @property {boolean} [initialKeysOnly=false]  Should the keys in the initialized data be limited to the keys provided
  *                                              by `options.initialKeys`?
  */
-export class MappingField extends foundry.data.fields.ObjectField {
-	constructor(model, options) {
+export class MappingField extends foundry.data.fields.TypedObjectField {
+	constructor(model, options, context) {
 		if (!(model instanceof foundry.data.fields.DataField)) {
 			throw new Error("MappingField must have a DataField as its contained element");
 		}
-		super(options);
+		// Cleaning and validating the entries, including partial updates and
+		// deletion keys, is left to the core field.
+		super(model, options, context);
 
 		/**
 		 * The embedded DataField definition which is contained in this field.
 		 * @type {DataField}
 		 */
-		this.model = model;
+		this.model = this.element;
 	}
 
 	/* -------------------------------------------- */
@@ -89,13 +91,6 @@ export class MappingField extends foundry.data.fields.ObjectField {
 			initialValue: null,
 			initialKeysOnly: false
 		});
-	}
-
-	/* -------------------------------------------- */
-	/** @inheritdoc */
-	_cleanType(value, options) {
-		Object.entries(value).forEach(([k, v]) => value[k] = this.model.clean(v, options));
-		return value;
 	}
 
 	/* -------------------------------------------- */
@@ -129,36 +124,6 @@ export class MappingField extends foundry.data.fields.ObjectField {
 
 	/* -------------------------------------------- */
 	/** @override */
-	_validateType(value, options = {}) {
-		if (foundry.utils.getType(value) !== "Object") {
-			throw new Error("must be an Object");
-		}
-		const errors = this._validateValues(value, options);
-		if (!foundry.utils.isEmpty(errors)) {
-			throw new foundry.data.validation.DataModelValidationError(errors);
-		}
-	}
-
-	/* -------------------------------------------- */
-	/**
-	 * Validate each value of the object.
-	 * @param {object} value     The object to validate.
-	 * @param {object} options   Validation options.
-	 * @returns {Object<Error>}  An object of value-specific errors by key.
-	 */
-	_validateValues(value, options) {
-		const errors = {};
-		for (const [k, v] of Object.entries(value)) {
-			const error = this.model.validate(v, options);
-			if (error) {
-				errors[k] = error;
-			}
-		}
-		return errors;
-	}
-
-	/* -------------------------------------------- */
-	/** @override */
 	initialize(value, model, options = {}) {
 		if (!value) {
 			return value;
@@ -176,13 +141,9 @@ export class MappingField extends foundry.data.fields.ObjectField {
 
 	/* -------------------------------------------- */
 	/** @inheritdoc */
-	_getField(path) {
-		if (path.length === 0) {
-			return this;
-		} else if (path.length === 1) {
-			return this.model;
-		}
-		path.shift();
-		return this.model._getField(path);
+	_getField(path, options = {}) {
+		if (path.length === 0) return this;
+		path.pop();
+		return this.model._getField(path, options);
 	}
 }

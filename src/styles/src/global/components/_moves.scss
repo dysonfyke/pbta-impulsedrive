@@ -52,6 +52,8 @@
 
   .item-controls {
     flex: 0 0 auto;
+    // Stay on the right even if the row is too narrow to hold them beside the name.
+    margin-left: auto;
   }
 
   .item-description {
@@ -133,7 +135,9 @@
     font-size: var(--font-size-18);
     font-weight: bold;
     text-transform: uppercase;
-    flex: auto;
+    // The name wraps onto more lines rather than pushing the controls off the row.
+    flex: 1 1 0;
+    min-width: 80px;
     margin: 0;
     display: flex;
     align-items: stretch;
@@ -159,7 +163,8 @@
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    flex: 100px;
+    // Only as wide as the tags, so that the name is what gives way in a narrow row.
+    flex: 0 1 auto;
 
     .item-uses {
       display: inline-flex;

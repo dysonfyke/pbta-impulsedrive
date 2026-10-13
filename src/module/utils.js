@@ -1057,6 +1057,7 @@ export async function preloadHandlebarsTemplates() {
 		// Actor partials
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-attributes.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-description.hbs`,
+		`systems/${SYSTEM_ID}/templates/actors/parts/actor-equipment.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-header.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-inventory.hbs`,
 		`systems/${SYSTEM_ID}/templates/actors/parts/actor-movelist.hbs`,

@@ -158,7 +158,22 @@
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+    align-items: center;
     flex: 100px;
+
+    .item-uses {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 2px;
+
+      input {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 16px;
+        margin: 0;
+      }
+    }
 
     > span {
       margin: 0;

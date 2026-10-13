@@ -48,6 +48,7 @@ PBTA:
   ItemGrants: "Item Grants"
   ItemGrantToggle: "Collapse / Expand"
   KeepItems: "Keep Items"
+  MaxUses: "Max Uses"
   Modifier: "Modifier"
   Modifiers:
     Label: "Modifiers"
@@ -119,6 +120,8 @@ PBTA:
   title: "Powered by the Apocalypse"
   Type: "Type"
   Uses: "Uses"
+  UsesAttribute: "Max Uses From"
+  UsesAttributeHint: "Takes the max uses from a stat or attribute of the owner instead, where they have it."
   ViewPlaybook: "View playbook"
   Weight: "Weight"
   Wt: "Wt"

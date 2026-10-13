@@ -42,8 +42,18 @@
         </div>
 
         <div class="form-group">
-          <label>{{localize "PBTA.Uses"}}</label>
-          <input type="number" name="system.uses" value="{{system.uses}}" data-dtype="Number"/>
+          <label>{{localize "PBTA.MaxUses"}}</label>
+          <input type="number" name="system.maxUses" value="{{system.maxUses}}" data-dtype="Number"/>
+        </div>
+        <div class="form-group">
+          <label>{{localize "PBTA.UsesAttribute"}}</label>
+          <select name="system.usesAttribute">
+            {{selectOptions usesTargets selected=system.usesAttribute blank="—"}}
+            {{#if (and system.usesAttribute (not (lookup usesTargets system.usesAttribute)))}}
+            <option value="{{system.usesAttribute}}" selected>{{system.usesAttribute}}</option>
+            {{/if}}
+          </select>
+          <p class="notes">{{localize "PBTA.UsesAttributeHint"}}</p>
         </div>
 
         {{#if (gt (objLen actorTypes) 1)}}

@@ -210,7 +210,7 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			// the actor's owner (e.g. a "Secrets" field), so hide them from
 			// anyone who only has Limited permission on this actor.
 			if (context.limited && v.limited) continue;
-			const { type, width, description, moveType } = detailsConfig[k] ?? {};
+			const { type, width, description, moveType, equipmentType } = detailsConfig[k] ?? {};
 			v.type = CONFIG.PBTA.detailTypes.includes(type) ? type : "LongText";
 			v.width = width === "half" ? "half" : "full";
 			v.description = description ?? "";
@@ -221,6 +221,12 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				v.moveType = moveType ?? k;
 				v.moves = context.moves[v.moveType] ?? [];
 				delete context.moves[v.moveType];
+			} else if (v.type === "Equipment") {
+				// As with moves, the equipment of this type is listed here instead of on its own tab.
+				if (context.limited) continue;
+				v.equipmentType = equipmentType ?? k;
+				v.equipment = context.equipment[v.equipmentType] ?? [];
+				delete context.equipment[v.equipmentType];
 			} else if (v.type === "Notes") {
 				for (const [id, note] of Object.entries(v.entries ?? {})) {
 					note.enriched = await enrich(note.content);
@@ -490,6 +496,9 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				}
 			}
 			item.isExpanded = this._expanded.has(item._id);
+			// Uses are tracked with a box for each one, ticked as they are spent.
+			const maxUses = Math.min(sourceItem.maxUses ?? 0, CONFIG.PBTA.maxUseBoxes);
+			item.uses = Array.from({ length: maxUses }, (v, step) => ({ step, checked: step < item.system.uses }));
 			// If this is a move, sort into various arrays.
 			if (item.type === moveType) {
 				if (context.moves[item.system.moveType]) {
@@ -512,6 +521,13 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
 	/** @override */
 	activateListeners(html) {
+		// Editors are remembered between renders, and each one is included whenever the sheet is saved.
+		// Forget those whose field has gone, so that they can't write a deleted note back.
+		for (const [name, editor] of Object.entries(this.editors)) {
+			if (html.find(`[data-edit="${name}"]`).length) continue;
+			editor.instance?.destroy();
+			delete this.editors[name];
+		}
 		super.activateListeners(html);
 
 		// Rollables.
@@ -569,12 +585,13 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		html.find(".token-modif").on("click", this._onStatTokenClick.bind(this));
 
 		// Quantity.
-		for (const attribute of ["quantity", "uses"]) {
-			html.find(`.item-meta .tag--${attribute}`).on({
-				click: this._onUsagesControl.bind(this, `system.${attribute}`, 1),
-				contextmenu: this._onUsagesControl.bind(this, `system.${attribute}`, -1)
-			});
-		}
+		html.find(".item-meta .tag--quantity").on({
+			click: this._onUsagesControl.bind(this, "system.quantity", 1),
+			contextmenu: this._onUsagesControl.bind(this, "system.quantity", -1)
+		});
+
+		// Uses.
+		html.find(".item-meta .item-use").on("click", this._onItemUseClick.bind(this));
 
 		// Resources.
 		html.find(".resource-control").on("click", this._onResourceControl.bind(this));
@@ -901,6 +918,22 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			content: content,
 			speaker: ChatMessage.getSpeaker({ actor: this.actor })
 		});
+	}
+
+	/**
+	 * Tick or clear the uses of an item up to the clicked box.
+	 * @param {MouseEvent} event
+	 */
+	async _onItemUseClick(event) {
+		event.preventDefault();
+		const box = event.currentTarget;
+		const item = this.actor.items.get(box.closest(".item").dataset.itemId);
+		if (!item) return;
+		let uses = Number(box.dataset.step) + 1;
+		// Clicking the last ticked box clears it.
+		if (item.system.uses === uses) uses--;
+		await item.update({ "system.uses": uses });
+		this.render();
 	}
 
 	/**

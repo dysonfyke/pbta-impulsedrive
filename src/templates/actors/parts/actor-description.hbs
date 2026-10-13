@@ -30,6 +30,25 @@
 					{{/each}}
 					</ol>
 				</div>
+				{{else if (eq result.type "Equipment")}}
+				<div class="cell--equipment cell--group cell--{{result.equipmentType}}" data-key="{{result.equipmentType}}">
+					<h2 class="cell__title">
+						<label>{{result.label}}</label>
+						<div>
+							<button type="button" class="item-control item-create" data-type="equipment" data-equipment-type="{{result.equipmentType}}">
+								<i class="fas fa-plus"></i>
+							</button>
+						</div>
+					</h2>
+					{{#if result.description}}<p class="cell__description">{{result.description}}</p>{{/if}}
+					<ol class="items-list">
+					{{#each result.equipment as |item|}}
+						<li class="item flexrow" data-item-id="{{item._id}}" draggable="true">
+						{{> "pbta.actor-equipment" item=item}}
+						</li>
+					{{/each}}
+					</ol>
+				</div>
 				{{else}}
 				{{#if result.label}}<label class="cell__title">{{result.label}}</label>{{/if}}
 				{{#if result.description}}<p class="cell__description">{{result.description}}</p>{{/if}}

@@ -34,10 +34,19 @@ export function createActorResources() {
  */
 export function createItemResources() {
 	return {
+		// How many of the item's uses have been spent.
 		uses: new foundry.data.fields.NumberField({
 			initial: 0,
 			integer: true
-		})
+		}),
+		maxUses: new foundry.data.fields.NumberField({
+			initial: 0,
+			integer: true,
+			min: 0
+		}),
+		// A stat or attribute of the owner to take the max uses from instead, by its
+		// sheet config (TOML) name, as with modifiers: "attributes.charges" or "stats.cool".
+		usesAttribute: new foundry.data.fields.StringField({ initial: "" })
 	};
 }
 

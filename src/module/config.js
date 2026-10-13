@@ -1,10 +1,14 @@
 export const PBTA = {};
 
+// The most use boxes shown for an item, whatever its max uses.
+PBTA.maxUseBoxes = 20;
+
 PBTA.detailTypes = [
 	"Text",
 	"LongText",
 	"Notes",
-	"Moves"
+	"Moves",
+	"Equipment"
 ];
 
 PBTA.attrTypes = [

@@ -12,6 +12,18 @@ export default class ItemPbta extends Item {
 		return { img: this.DEFAULT_ICON };
 	}
 
+	/**
+	 * The number of uses the item has, which may come from a stat or attribute of its owner.
+	 * @type {number}
+	 */
+	get maxUses() {
+		const { maxUses, usesAttribute } = this.system;
+		const path = this.actor && game.pbta.utils.getModifierPath(usesAttribute);
+		const value = path ? foundry.utils.getProperty(this.actor, path) : undefined;
+		// Fall back to the item's own max if the owner doesn't have the attribute.
+		return Math.max(0, Math.floor(Number(value === undefined ? maxUses : value) || 0));
+	}
+
 	/** @override */
 	getRollData() {
 		const rollData = {

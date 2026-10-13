@@ -24,8 +24,10 @@
   </span>
 </h4>
 <div class="item-meta tags">
-  {{#if (not sheetSettings.hideUses)}}
-    <span class="tag tag--uses">{{localize "PBTA.Uses"}}: {{item.system.uses}}</span>
+  {{#if (and item.uses.length (not sheetSettings.hideUses))}}
+    <span class="item-uses" data-tooltip="PBTA.Uses">
+      {{#each item.uses}}<input type="checkbox" class="item-use" data-step="{{this.step}}" {{checked this.checked}}>{{/each}}
+    </span>
   {{/if}}
   {{#if (eq item.system.rollType 'formula')}}
     <span class="tag tag--formula">{{item.system.rollFormula}}</span>

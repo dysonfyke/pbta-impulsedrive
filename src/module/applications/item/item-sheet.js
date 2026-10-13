@@ -145,6 +145,10 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 			context.system.equipmentTypes = equipmentTypes ?? null;
 		}
 
+		if ("maxUses" in this.item.system) {
+			context.usesTargets = game.pbta.utils.getModifierTargets(actorType);
+		}
+
 		if (this.item.system.modifiers || this.item.type === "playbook") {
 			context.modifierTargets = game.pbta.utils.getModifierTargets(actorType);
 			context.modifierModes = {

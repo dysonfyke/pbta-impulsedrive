@@ -41,6 +41,8 @@ PBTA:
   Disadvantage: "Disadvantage"
   DropItemsHere: "Drop items here"
   Equipment: "Equipment"
+  Equippable: "Equippable"
+  Equipped: "Equipped"
   failure: "Complications (mark XP)"
   Formula: "Custom Roll Formula"
   Forward: "Forward"
@@ -48,6 +50,8 @@ PBTA:
   ItemGrants: "Item Grants"
   ItemGrantToggle: "Collapse / Expand"
   KeepItems: "Keep Items"
+  Locked: "Locked"
+  LockedHint: "Only a GM can edit a locked item. Players can still track its uses, quantity and whether it is equipped."
   MaxUses: "Max Uses"
   Modifier: "Modifier"
   Modifiers:
@@ -65,6 +69,7 @@ PBTA:
   MoveGroupHelp: "Multiple moves with the same move-group will be either/or selections when creating a new character using the character builder."
   Moves: "Moves"
   Name: "Name"
+  NotEquipped: "Not Equipped"
   Notes:
     Add: "Add Note"
     Delete: "Delete Note"
@@ -119,6 +124,10 @@ PBTA:
   TriggeredGrants: "Triggered Grants"
   title: "Powered by the Apocalypse"
   Type: "Type"
+  UpdateItems:
+    Label: "Update Items"
+    Hint: "Update this character's locked items to match the compendium or world items they were copied from? Uses, quantities and equipped items are kept. Playbooks are not updated."
+    Done: "Updated {count} items. {names}"
   Uses: "Uses"
   UsesAttribute: "Max Uses From"
   UsesAttributeHint: "Takes the max uses from a stat or attribute of the owner instead, where they have it."
@@ -260,6 +269,7 @@ PBTA:
       up: "{stat} Shifts Up"
       down: "{stat} Shifts Down"
   Warnings:
+    ItemLocked: "{name} is locked, so only a GM can change it."
     Playbook:
       ChoiceSetAlreadyGrant: "Choice Set already has the granted item."
       DeleteWarning: "This {type} will be permanently deleted, cannot be recovered, and will remove {num} granted items."

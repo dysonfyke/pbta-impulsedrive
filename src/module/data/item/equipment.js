@@ -15,6 +15,9 @@ export default class EquipmentData extends ItemTemplateData {
 				initial: 0,
 				integer: true
 			}),
+			// Whether the item can be equipped, and whether it currently is.
+			equippable: new foundry.data.fields.BooleanField({ initial: false }),
+			equipped: new foundry.data.fields.BooleanField({ initial: false }),
 			tags: new foundry.data.fields.StringField({ initial: "" }),
 			itemType: new foundry.data.fields.StringField({ initial: "" }),
 			equipmentType: new foundry.data.fields.StringField({ initial: "" }),

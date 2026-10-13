@@ -244,7 +244,9 @@ export default class ItemPbta extends Item {
 				}
 				const item = await fromUuid(choice.uuid);
 				if (item) {
-					items.push(item.toObject());
+					const itemData = item.toObject();
+					foundry.utils.setProperty(itemData, `flags.${SYSTEM_ID}.sourceUuid`, item.uuid);
+					items.push(itemData);
 					grantedItems.push(item.id);
 				} else {
 					console.warn("PBTA.Warnings.Playbook.ItemMissing", { localize: true });
@@ -544,6 +546,18 @@ export default class ItemPbta extends Item {
 	}
 
 	async _preUpdate(changed, options, user) {
+		// Only a GM can change what a locked item is. Playbooks are left alone,
+		// as they record the choices their owner has taken.
+		if (this.system.locked && !user.isGM && (this.type !== "playbook")) {
+			let blocked = ["name", "img"].filter((key) => key in changed);
+			blocked.forEach((key) => delete changed[key]);
+			for (const key of Object.keys(changed.system ?? {})) {
+				if (CONFIG.PBTA.itemStateFields.includes(key)) continue;
+				delete changed.system[key];
+				blocked.push(key);
+			}
+			if (blocked.length) ui.notifications.warn(game.i18n.format("PBTA.Warnings.ItemLocked", { name: this.name }));
+		}
 		if (changed?.system?.modifiers && !Array.isArray(changed.system.modifiers)) {
 			changed.system.modifiers = Object.values(changed.system.modifiers);
 		}

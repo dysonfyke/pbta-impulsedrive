@@ -20,6 +20,14 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 	/* -------------------------------------------- */
 
 	/** @override */
+	get isEditable() {
+		if (this.item.system.locked && !game.user.isGM) return false;
+		return super.isEditable;
+	}
+
+	/* -------------------------------------------- */
+
+	/** @override */
 	get template() {
 		const path = `systems/${SYSTEM_ID}/templates/items`;
 		return `${path}/${this.item.type}-sheet.html`;

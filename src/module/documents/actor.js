@@ -129,6 +129,41 @@ export default class ActorPbta extends Actor {
 	}
 
 	/**
+	 * Updates this actor's locked items to match the compendium or world items they were copied from.
+	 * What the actor has done with each item, such as the uses spent, is kept. Playbooks are skipped,
+	 * as they record the choices their owner has taken.
+	 * @returns {Promise<string[]>}  The names of the items that were updated.
+	 */
+	async updateItemsFromSource() {
+		const updates = [];
+		const modifiers = [];
+		for (const item of this.items) {
+			if ((item.type === "playbook") || !item.system.locked) continue;
+			const uuid = item.getFlag(SYSTEM_ID, "sourceUuid") ?? item._stats?.compendiumSource;
+			const source = uuid ? await fromUuid(uuid) : null;
+			if (!source || (source.type !== item.type)) continue;
+
+			const { name, img, system } = source.toObject();
+			for (const key of CONFIG.PBTA.itemStateFields) delete system[key];
+			const current = item.toObject();
+			const diff = foundry.utils.diffObject({ name: current.name, img: current.img, system: current.system }, { name, img, system });
+			if (foundry.utils.isEmpty(diff)) continue;
+			updates.push({ _id: item.id, name, img, system });
+			if (JSON.stringify(current.system.modifiers ?? []) !== JSON.stringify(system.modifiers ?? [])) {
+				modifiers.push({ id: item.id, modifiers: system.modifiers ?? [] });
+			}
+		}
+		if (!updates.length) return [];
+		await this.updateEmbeddedDocuments("Item", updates);
+		// Changed modifiers replace the ones the item applied when it was added.
+		for (const { id, modifiers: changes } of modifiers) {
+			await this.revertModifiers([id]);
+			await this.applyModifiers(id, changes);
+		}
+		return updates.map((update) => update.name);
+	}
+
+	/**
 	 * Runs modifier updates one at a time, as each depends on the values left by the last.
 	 * @param {Function} fn
 	 * @returns {Promise}

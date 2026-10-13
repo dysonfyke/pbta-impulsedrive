@@ -17,6 +17,15 @@
 	  {{#each item.uses}}<input type="checkbox" class="item-use" data-step="{{this.step}}" {{checked this.checked}}>{{/each}}
 	</span>
 	{{/if}}
+	{{#if item.system.equippable}}
+	<span class="tag tag--equipped {{#if item.system.equipped}}active{{/if}}">
+		{{#if item.system.equipped}}
+		<i class="fas fa-circle-check"></i> {{localize "PBTA.Equipped"}}
+		{{else}}
+		<i class="far fa-circle"></i> {{localize "PBTA.NotEquipped"}}
+		{{/if}}
+	</span>
+	{{/if}}
 	<span class="tag tag--quantity">{{localize "PBTA.Qty"}}: {{item.system.quantity}}</span>
 	{{#if item.system.weight }}<span class="tag tag--weight">{{localize "PBTA.Wt"}}: {{item.system.weight}}</span>{{/if}}
 </div>

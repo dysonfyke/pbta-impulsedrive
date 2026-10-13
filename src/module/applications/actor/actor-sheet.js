@@ -92,6 +92,33 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	/* -------------------------------------------- */
 
 	/** @override */
+	_getHeaderButtons() {
+		const buttons = super._getHeaderButtons();
+		if (game.user.isGM) {
+			buttons.unshift({
+				label: "PBTA.UpdateItems.Label",
+				class: "update-items",
+				icon: "fas fa-rotate",
+				onclick: () => this._onUpdateItems()
+			});
+		}
+		return buttons;
+	}
+
+	async _onUpdateItems() {
+		const confirmed = await Dialog.confirm({
+			title: game.i18n.localize("PBTA.UpdateItems.Label"),
+			content: `<p>${game.i18n.localize("PBTA.UpdateItems.Hint")}</p>`
+		});
+		if (!confirmed) return;
+		const updated = await this.actor.updateItemsFromSource();
+		ui.notifications.info(game.i18n.format("PBTA.UpdateItems.Done", {
+			count: updated.length,
+			names: updated.join(", ")
+		}));
+	}
+
+	/** @override */
 	get template() {
 		const path = `systems/${SYSTEM_ID}/templates/actors`;
 		return `${path}/actor-sheet.html`;
@@ -593,6 +620,9 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		// Uses.
 		html.find(".item-meta .item-use").on("click", this._onItemUseClick.bind(this));
 
+		// Equipping.
+		html.find(".item-meta .tag--equipped").on("click", this._onItemEquipClick.bind(this));
+
 		// Resources.
 		html.find(".resource-control").on("click", this._onResourceControl.bind(this));
 
@@ -937,6 +967,18 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 	}
 
 	/**
+	 * Equip or unequip an item.
+	 * @param {MouseEvent} event
+	 */
+	async _onItemEquipClick(event) {
+		event.preventDefault();
+		const item = this.actor.items.get(event.currentTarget.closest(".item").dataset.itemId);
+		if (!item) return;
+		await item.update({ "system.equipped": !item.system.equipped });
+		this.render();
+	}
+
+	/**
 	 * Adjust a numerical field on click.
 	 * @param {string} property
 	 * @param {int} delta
@@ -1042,6 +1084,8 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		if (!this.actor.isOwner) return false;
 		const item = await Item.implementation.fromDropData(data);
 		const itemData = item.toObject();
+		// Remember where a new item came from, so that it can be updated from there later.
+		if (!item.parent) foundry.utils.setProperty(itemData, `flags.${SYSTEM_ID}.sourceUuid`, item.uuid);
 
 		// Handle item sorting within the same Actor
 		if (this.actor.uuid === item.parent?.uuid) {

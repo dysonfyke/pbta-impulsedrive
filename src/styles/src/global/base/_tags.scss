@@ -20,8 +20,21 @@
   list-style-type: none;
 
   &.tag--quantity,
+  &.tag--equipped,
   &.tag--uses {
     cursor: pointer;
+  }
+
+  &.tag--equipped {
+    white-space: nowrap;
+    opacity: 0.7;
+
+    &.active {
+      background: $c-navy;
+      border-color: $c-navy;
+      color: $c-light;
+      opacity: 1;
+    }
   }
 }
 

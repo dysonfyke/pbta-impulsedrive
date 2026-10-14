@@ -1,7 +1,7 @@
 <div class="tab description" data-group="primary" data-tab="description">
 	<div class="sheet-tab">
 		{{#each system.details as |result key|}}
-			<div class="cell cell--bio cell--bio-{{result.type}} cell--{{result.width}} {{key}}" data-key="{{key}}">
+			<div class="cell cell--bio cell--bio-{{result.type}} cell--{{result.width}} {{#if result.height}}cell--sized{{/if}} {{key}}" data-key="{{key}}" {{#if result.height}}style="--section-height: {{result.height}};"{{/if}}>
 				{{#if (eq result.type "Moves")}}
 				<div class="cell--moves cell--group cell--{{result.moveType}}" data-key="{{result.moveType}}">
 					<h2 class="cell__title">

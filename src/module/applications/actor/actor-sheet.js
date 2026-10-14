@@ -237,10 +237,11 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 			// the actor's owner (e.g. a "Secrets" field), so hide them from
 			// anyone who only has Limited permission on this actor.
 			if (context.limited && v.limited) continue;
-			const { type, width, description, moveType, equipmentType } = detailsConfig[k] ?? {};
+			const { type, width, height, description, moveType, equipmentType } = detailsConfig[k] ?? {};
 			v.type = CONFIG.PBTA.detailTypes.includes(type) ? type : "LongText";
 			v.width = width === "half" ? "half" : "full";
 			v.description = description ?? "";
+			v.height = this._getLength(height);
 			if (v.type === "Moves") {
 				// Moves are hidden from anyone with only Limited permission, as on the moves tab.
 				if (context.limited) continue;
@@ -382,6 +383,17 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 				attrValue.showResults = true;
 			}
 		}
+	}
+
+	/**
+	 * Converts a size from the sheet config into a CSS length.
+	 * @param {number|string} [size]  A number of pixels, or a length such as "20em".
+	 * @returns {string}
+	 */
+	_getLength(size) {
+		if ((typeof size === "number") && (size > 0)) return `${size}px`;
+		if ((typeof size === "string") && /^\d+(\.\d+)?(%|px|em|rem)$/.test(size.trim())) return size.trim();
+		return "";
 	}
 
 	/**
@@ -1056,11 +1068,19 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		if (dataset.equipmentType) {
 			system.equipmentType = dataset.equipmentType;
 		}
+		// A move or equipment type in the sheet config can set the name and icon of new items.
+		const typeConfig = game.pbta.sheetConfig.actorTypes?.[this.actor.sheetType] ?? {};
+		const category = dataset.moveType
+			? typeConfig.moveTypes?.[dataset.moveType]
+			: typeConfig.equipmentTypes?.[dataset.equipmentType];
 		const itemData = {
-			name: CONFIG.Item.documentClass.defaultName({ type, parent: this.actor }),
+			name: category?.defaultName
+				? game.i18n.localize(category.defaultName)
+				: CONFIG.Item.documentClass.defaultName({ type, parent: this.actor }),
 			type: type,
 			system: system
 		};
+		if (category?.defaultImg) itemData.img = category.defaultImg;
 		await this.actor.createEmbeddedDocuments("Item", [itemData], { renderSheet: true });
 	}
 

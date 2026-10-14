@@ -123,6 +123,15 @@
           min-height: 200px;
         }
       }
+
+      // A height from the sheet config applies both while reading and while editing.
+      &.cell--sized .editor {
+        min-height: var(--section-height);
+
+        .editor-container {
+          min-height: var(--section-height);
+        }
+      }
     }
   }
 

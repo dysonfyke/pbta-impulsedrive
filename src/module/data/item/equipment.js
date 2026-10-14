@@ -7,6 +7,8 @@ export default class EquipmentData extends ItemTemplateData {
 		return {
 			...superFields,
 			...createItemResources(),
+			// Whether the quantity is tracked, for items that aren't unique.
+			hasQuantity: new foundry.data.fields.BooleanField({ initial: false }),
 			quantity: new foundry.data.fields.NumberField({
 				initial: 1,
 				integer: true

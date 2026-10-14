@@ -26,7 +26,9 @@
 		{{/if}}
 	</span>
 	{{/if}}
+	{{#if item.system.hasQuantity}}
 	<span class="tag tag--quantity">{{localize "PBTA.Qty"}}: {{item.system.quantity}}</span>
+	{{/if}}
 	{{#if item.system.weight }}<span class="tag tag--weight">{{localize "PBTA.Wt"}}: {{item.system.weight}}</span>{{/if}}
 </div>
 <div class="item-controls">

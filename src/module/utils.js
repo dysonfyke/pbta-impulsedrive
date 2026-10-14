@@ -396,16 +396,25 @@ export function convertSheetConfig(sheetConfig) {
 					if (typeof mtValue === "string") {
 						actorType.moveTypes[cleanClass(mtKey, false)] = { label: mtValue };
 					} else {
-						const { label, playbook = false, creation = false } = mtValue;
+						const { label, playbook = false, creation = false, defaultName, defaultImg } = mtValue;
 						actorType.moveTypes[cleanClass(mtKey, false)] = { label, playbook, creation };
+						if (defaultName) actorType.moveTypes[cleanClass(mtKey, false)].defaultName = defaultName;
+						if (defaultImg) actorType.moveTypes[cleanClass(mtKey, false)].defaultImg = defaultImg;
 					}
 				}
 			}
 
 			if (v.equipmentTypes) {
 				actorType.equipmentTypes = {};
-				for (let [etKey, etLabel] of Object.entries(v.equipmentTypes)) {
-					actorType.equipmentTypes[cleanClass(etKey, false)] = { label: etLabel };
+				for (let [etKey, etValue] of Object.entries(v.equipmentTypes)) {
+					if (typeof etValue === "string") {
+						actorType.equipmentTypes[cleanClass(etKey, false)] = { label: etValue };
+					} else {
+						const { label, defaultName, defaultImg } = etValue;
+						actorType.equipmentTypes[cleanClass(etKey, false)] = { label };
+						if (defaultName) actorType.equipmentTypes[cleanClass(etKey, false)].defaultName = defaultName;
+						if (defaultImg) actorType.equipmentTypes[cleanClass(etKey, false)].defaultImg = defaultImg;
+					}
 				}
 			}
 

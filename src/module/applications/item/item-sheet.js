@@ -21,8 +21,17 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 
 	/** @override */
 	get isEditable() {
-		if (this.item.system.locked && !game.user.isGM) return false;
+		// Locked items are read-only for players, unless they may personalise parts of them.
+		if (this.isLocked && !CONFIG.PBTA.itemPersonalFields[this.item.type]) return false;
 		return super.isEditable;
+	}
+
+	/**
+	 * Whether the item is locked for the current user.
+	 * @type {boolean}
+	 */
+	get isLocked() {
+		return this.item.system.locked && !game.user.isGM;
 	}
 
 	/* -------------------------------------------- */
@@ -65,7 +74,9 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 			editable: this.isEditable,
 			cssClass: this.isEditable ? "editable" : "locked",
 			flags: this.item.flags,
-			isGM: game.user.isGM
+			isGM: game.user.isGM,
+			// Players only see the description of a locked item.
+			hideDetails: this.isLocked && game.settings.get(SYSTEM_ID, "hideLockedDetails")
 		};
 
 		// Handle rich text fields.
@@ -172,6 +183,15 @@ export default class PbtaItemSheet extends foundry.appv1.sheets.ItemSheet {
 
 	/** @override */
 	async activateListeners(html) {
+		if (this.isLocked && this.isEditable) {
+			// Only the parts a player may personalise stay editable.
+			const personal = CONFIG.PBTA.itemPersonalFields[this.item.type] ?? [];
+			html.find("input, select, textarea").each((i, el) => {
+				const field = el.name?.replace(/^system\./, "");
+				if (!personal.includes(field)) el.disabled = true;
+			});
+			html.find("img[data-edit]").removeAttr("data-edit");
+		}
 		super.activateListeners(html);
 		if (this.item.type === "equipment") {
 			const whitelist = game.pbta.utils.getTagList(this.item, "item");

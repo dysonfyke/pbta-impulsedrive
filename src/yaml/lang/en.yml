@@ -52,7 +52,7 @@ PBTA:
   ItemGrantToggle: "Collapse / Expand"
   KeepItems: "Keep Items"
   Locked: "Locked"
-  LockedHint: "Only a GM can edit a locked item. Players can still track its uses, quantity and whether it is equipped."
+  LockedHint: "Only a GM can edit a locked item. Players can still track its uses, quantity and whether it is equipped, and can rename equipment and edit its description."
   MaxUses: "Max Uses"
   Modifier: "Modifier"
   Modifiers:
@@ -210,6 +210,9 @@ PBTA:
     hideUses:
       name: "Hide uses"
       hint: "Hides uses remaining for each move on the move's summary for characters and NPCs."
+    hideLockedDetails:
+      name: "Show only descriptions of locked items"
+      hint: "Players only see the description tab of a locked move or piece of equipment."
     hideAdvancement:
       name: "Hide Advancements"
       hint: "Hides the Advancements in the actor sheet. Any option that isn't \"None\" also hides the \"(Advancement #)\" on the Actors sidebar."

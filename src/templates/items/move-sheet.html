@@ -11,7 +11,9 @@
   {{!-- Sheet Tab Navigation --}}
   <nav class="sheet-navigation sheet-tabs tabs" data-group="primary">
     <a class="item" data-tab="description">{{localize "PBTA.Common.Description" }}</a>
+    {{#unless hideDetails}}
     <a class="item" data-tab="details">{{localize "PBTA.Common.Details" }}</a>
+    {{/unless}}
   </nav>
 
   {{!-- Sheet Body --}}
@@ -21,6 +23,7 @@
       {{> "pbta.move-description" hasChoices=true}}
 
       {{!-- Details Tab --}}
+      {{#unless hideDetails}}
       <div class="tab" data-group="primary" data-tab="details">
         {{#if isGM}}
         <div class="form-group">
@@ -85,5 +88,6 @@
           <p class="notes">{{localize "PBTA.Modifiers.Hint"}}</p>
         </div>
       </div>
+      {{/unless}}
   </section>
 </form>

@@ -118,6 +118,15 @@ export function registerSettings() {
 		default: true
 	});
 
+	game.settings.register(SYSTEM_ID, "hideLockedDetails", {
+		name: game.i18n.localize("PBTA.Settings.hideLockedDetails.name"),
+		hint: game.i18n.localize("PBTA.Settings.hideLockedDetails.hint"),
+		scope: "world",
+		config: true,
+		type: Boolean,
+		default: true
+	});
+
 	game.settings.register(SYSTEM_ID, "hideAdvancement", {
 		name: game.i18n.localize("PBTA.Settings.hideAdvancement.name"),
 		hint: game.i18n.localize("PBTA.Settings.hideAdvancement.hint"),

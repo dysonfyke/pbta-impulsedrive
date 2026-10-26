@@ -9,6 +9,12 @@ PBTA.itemStateFields = [
 	"actorType"
 ];
 
+// Item data that players may still personalise on a locked item, by item type.
+// It is kept when the item is updated from its source.
+PBTA.itemPersonalFields = {
+	equipment: ["name", "description"]
+};
+
 // The most use boxes shown for an item, whatever its max uses.
 PBTA.maxUseBoxes = 20;
 

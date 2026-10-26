@@ -143,9 +143,13 @@ export default class ActorPbta extends Actor {
 			const source = uuid ? await fromUuid(uuid) : null;
 			if (!source || (source.type !== item.type)) continue;
 
-			const { name, img, system } = source.toObject();
-			for (const key of CONFIG.PBTA.itemStateFields) delete system[key];
 			const current = item.toObject();
+			let { name, img, system } = source.toObject();
+			for (const key of CONFIG.PBTA.itemStateFields) delete system[key];
+			// Anything the player was allowed to personalise is theirs to keep.
+			const personal = CONFIG.PBTA.itemPersonalFields[item.type] ?? [];
+			if (personal.includes("name")) name = current.name;
+			for (const key of personal) delete system[key];
 			const diff = foundry.utils.diffObject({ name: current.name, img: current.img, system: current.system }, { name, img, system });
 			if (foundry.utils.isEmpty(diff)) continue;
 			updates.push({ _id: item.id, name, img, system });

@@ -549,10 +549,11 @@ export default class ItemPbta extends Item {
 		// Only a GM can change what a locked item is. Playbooks are left alone,
 		// as they record the choices their owner has taken.
 		if (this.system.locked && !user.isGM && (this.type !== "playbook")) {
-			let blocked = ["name", "img"].filter((key) => key in changed);
+			const personal = CONFIG.PBTA.itemPersonalFields[this.type] ?? [];
+			let blocked = ["name", "img"].filter((key) => (key in changed) && !personal.includes(key));
 			blocked.forEach((key) => delete changed[key]);
 			for (const key of Object.keys(changed.system ?? {})) {
-				if (CONFIG.PBTA.itemStateFields.includes(key)) continue;
+				if (CONFIG.PBTA.itemStateFields.includes(key) || personal.includes(key)) continue;
 				delete changed.system[key];
 				blocked.push(key);
 			}

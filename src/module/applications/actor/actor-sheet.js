@@ -146,6 +146,8 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
 	async close(options={}) {
 		this._statShifting = {};
+		this._autogrowObserver?.disconnect();
+		this._autogrowObserver = null;
 		await this._saveJournal();
 		return super.close(options);
 	}
@@ -640,8 +642,20 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
 		// One-line list options grow onto more lines to fit their text, and Enter
 		// finishes the entry as it would in a single-line box.
+		// They are also re-fitted whenever their width changes, such as when the sheet is resized
+		// or a hidden tab is shown.
+		this._autogrowObserver?.disconnect();
+		const widths = new WeakMap();
+		this._autogrowObserver = new ResizeObserver((entries) => {
+			for (const { target, contentRect } of entries) {
+				// Fitting a box changes its height, which isn't a reason to fit it again.
+				if (widths.get(target) === contentRect.width) continue;
+				widths.set(target, contentRect.width);
+				this._autogrow(target);
+			}
+		});
 		html.find("textarea.input-autogrow")
-			.each((i, el) => this._autogrow(el))
+			.each((i, el) => this._autogrowObserver.observe(el))
 			.on("input", (event) => this._autogrow(event.currentTarget))
 			.on("keydown", (event) => {
 				if (event.key !== "Enter") return;

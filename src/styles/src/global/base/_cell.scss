@@ -177,6 +177,15 @@
     .input-title {
       text-align: left;
     }
+
+    textarea.input-autogrow {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      resize: none;
+      // Grow with the text in browsers that can do so without the sheet's help.
+      field-sizing: content;
+    }
   }
 }
 

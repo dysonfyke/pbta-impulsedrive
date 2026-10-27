@@ -638,6 +638,17 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		// Resources.
 		html.find(".resource-control").on("click", this._onResourceControl.bind(this));
 
+		// One-line list options grow onto more lines to fit their text, and Enter
+		// finishes the entry as it would in a single-line box.
+		html.find("textarea.input-autogrow")
+			.each((i, el) => this._autogrow(el))
+			.on("input", (event) => this._autogrow(event.currentTarget))
+			.on("keydown", (event) => {
+				if (event.key !== "Enter") return;
+				event.preventDefault();
+				event.currentTarget.blur();
+			});
+
 		// Notes.
 		html.find(".note-toggle").on("click", this._onNoteToggle.bind(this));
 		html.find(".note-create").on("click", this._onNoteCreate.bind(this));
@@ -721,6 +732,16 @@ export default class PbtaActorSheet extends foundry.appv1.sheets.ActorSheet {
 		if (!confirmed) return;
 		this._expandedNotes.delete(id);
 		await this.actor.update({ [`system.details.${key}.entries.-=${id}`]: null });
+	}
+
+	/**
+	 * Resize a text box to fit its text.
+	 * @param {HTMLTextAreaElement} el
+	 */
+	_autogrow(el) {
+		el.style.height = "auto";
+		// A box in a hidden part of the sheet has no size to measure, so is left as it is.
+		if (el.scrollHeight) el.style.height = `${el.scrollHeight}px`;
 	}
 
 	_onResourceControl(event) {

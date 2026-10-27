@@ -58,7 +58,7 @@
 								<input type="checkbox" class="attr-list" name="system.attributes.{{key}}.options.{{optionKey}}.value" {{checked option.value}}/>
 							{{/if}}
 							{{#if (eq option.label "[Text]")}}
-								<input type="text" class="input input-title" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" value="{{option.userLabel}}">
+								<textarea class="input input-title input-autogrow" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" rows="1">{{option.userLabel}}</textarea>
 							{{else if (or (eq option.label "[TextLong]") (eq option.label "[LongText]"))}}
 								<textarea class="input input-longtext" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" rows="3">{{option.userLabel}}</textarea>
 							{{else}}
@@ -79,7 +79,7 @@
 					>
 						<input type="radio" class="attr-list" value="{{@index}}" name="system.attributes.{{key}}.value" {{checked (softEq attr.value @index)}} />
 						{{#if (eq option.label "[Text]")}}
-							<input type="text" class="input input-title" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" value="{{option.userLabel}}">
+							<textarea class="input input-title input-autogrow" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" rows="1">{{option.userLabel}}</textarea>
 						{{else if (or (eq option.label "[TextLong]") (eq option.label "[LongText]"))}}
 							<textarea class="input input-longtext" name="system.attributes.{{key}}.options.{{optionKey}}.userLabel" rows="3">{{option.userLabel}}</textarea>
 						{{else}}
